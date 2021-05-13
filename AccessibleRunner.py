@@ -1,5 +1,4 @@
 # TODO
-#* SIGKILL instead of interrupt
 # * Capture also stderr.
 #* What does close_fds do and why buffer size is needed?
 # * Why the second argument is needed for thread function?
@@ -113,7 +112,7 @@ class AccessibleRunner(wx.Frame):
       try:
         self.process = Popen([command, args], shell = True, stdout = PIPE, bufsize = 1, close_fds = ON_POSIX, cwd = dir)
       except NotADirectoryError:
-        self.setOutput('Error: The directory does not exist.\n', True)//
+        self.setOutput('Error: The directory does not exist.\n', True)
       else:        
         thread = Thread(target=self.fetchOutput, args = (self.process.stdout, None))
         thread.daemon = True # Thread dies with the program

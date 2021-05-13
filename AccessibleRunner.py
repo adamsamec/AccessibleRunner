@@ -1,8 +1,5 @@
 # TODO
 # * Create keyboard shortcuts.
-# * Disable not relevent buttons.
-#* What does close_fds do and why buffer size is needed?
-# * Why the second argument is needed for thread function?
 
 import sys
 import wx
@@ -11,8 +8,6 @@ import signal
 import psutil
 from subprocess import Popen, PIPE, STDOUT
 from threading  import Thread
-
-ON_POSIX = 'posix' in sys.builtin_module_names
 
 class AccessibleRunner(wx.Frame):
   def __init__(self, parent, title):
@@ -116,7 +111,7 @@ class AccessibleRunner(wx.Frame):
         dir = None
       
       try:
-        self.process = Popen([command, args], shell = True, stdout = PIPE, stderr = STDOUT, bufsize = 1, close_fds = ON_POSIX, cwd = dir)
+        self.process = Popen([command, args], shell = True, stdout = PIPE, stderr = STDOUT, cwd = dir)
       except NotADirectoryError:
         self.setOutput('Error: The directory does not exist.\n', True)
       else:        
@@ -132,19 +127,25 @@ class AccessibleRunner(wx.Frame):
       self.killButton.Disable()
     
   def onClearButtonClick(self, event):
-    self.setOutput('')
+    self.clearOutput()
     
   def onCopyButtonClick(self, event):
-    if not wx.TheClipboard.IsOpened():
-      wx.TheClipboard.Open()
-      data = wx.TextDataObject()
-      data.SetText(self.textbox.GetValue())
-      wx.TheClipboard.SetData(data)
-      wx.TheClipboard.Close()
+    self.copyOutput()
       
+  def clearOutput(self):
+    self.setOutput('')
+        
   def setOutput(self, text, append = False):
     prevText = self.outputTextbox.GetValue() if append else ''
     self.outputTextbox.SetValue(prevText + text)
+    
+  def copyOutput(self):
+    if not wx.TheClipboard.IsOpened():
+      wx.TheClipboard.Open()
+      data = wx.TextDataObject()
+      data.SetText(self.outputTextbox.GetValue())
+      wx.TheClipboard.SetData(data)
+      wx.TheClipboard.Close()
     
   def killProcessTree(self):
     #os.kill(self.process.pid, signal.CTRL_C_EVENT) # This cannot be used, as it terminates the whole app
@@ -161,8 +162,8 @@ class AccessibleRunner(wx.Frame):
     self.process = None
       
   def fetchOutput(self, out, arg):
-    for line in iter(out.readline,  b''):
-      self.setOutput(line.decode('utf-8'), True)
+    for line in iter(out.readline, b''):
+      self.setOutput(line.decode('windows-1250'), True)
     out.close()
     self.process = None
     

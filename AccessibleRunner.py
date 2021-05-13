@@ -1,4 +1,6 @@
 # TODO
+# * Create keyboard shortcuts.
+# * Disable not relevent buttons.
 #* What does close_fds do and why buffer size is needed?
 # * Why the second argument is needed for thread function?
 
@@ -6,6 +8,7 @@ import sys
 import wx
 import os
 import signal
+import psutil
 from subprocess import Popen, PIPE, STDOUT
 from threading  import Thread
 
@@ -25,7 +28,7 @@ class AccessibleRunner(wx.Frame):
     
   def onWindowClose(self, event):
     if self.process:
-      self.interrupt()
+      self.killProcessTree()
     self.Destroy()
 
   def addWidgets(self):
@@ -66,9 +69,9 @@ class AccessibleRunner(wx.Frame):
     self.runButton.Bind(wx.EVT_BUTTON, self.onRunButtonClick)
     hbox4.Add(self.runButton, 1, wx.EXPAND | wx.ALIGN_LEFT | wx.ALL, 5)
     
-    self.interruptButton = wx.Button(self.panel, label = 'Interrupt')
-    self.interruptButton.Bind(wx.EVT_BUTTON, self.onInterruptButtonClick)
-    hbox4.Add(self.interruptButton, 1, wx.EXPAND | wx.ALIGN_LEFT | wx.ALL, 5)    
+    self.killButton = wx.Button(self.panel, label = 'Kill process')
+    self.killButton.Bind(wx.EVT_BUTTON, self.onKillButtonClick)
+    hbox4.Add(self.killButton, 1, wx.EXPAND | wx.ALIGN_LEFT | wx.ALL, 5)    
     
     # Output textbox
     hbox5 = wx.BoxSizer(wx.HORIZONTAL)
@@ -117,10 +120,9 @@ class AccessibleRunner(wx.Frame):
         thread.daemon = True # Thread dies with the program
         thread.start()
     
-  def onInterruptButtonClick(self, event):
+  def onKillButtonClick(self, event):
     if self.process:
-      Popen(['taskkill', '/pid', str(self.process.pid), '/t'], shell = True) # This does not work either
-      #self.interrupt()
+      self.killProcessTree()
     
   def onClearButtonClick(self, event):
     self.setOutput('')
@@ -136,9 +138,19 @@ class AccessibleRunner(wx.Frame):
   def setOutput(self, text, append = False):
     prevText = self.outputTextbox.GetValue() if append else ''
     self.outputTextbox.SetValue(prevText + text)
-      
-  def interrupt(self):
-    os.kill(self.process.pid, signal.CTRL_C_EVENT)
+    
+  def killProcessTree(self):
+    #os.kill(self.process.pid, signal.CTRL_C_EVENT) # This cannot be used, as it terminates the whole app
+    parent = psutil.Process(self.process.pid)
+    children = parent.children(recursive = True)
+    for child in children:
+        child.kill()
+    psutil.wait_procs(children, timeout = 5)
+    try:
+      parent.kill()
+      parent.wait(5)
+    except:
+      pass
     self.process = None
       
   def fetchOutput(self, out, arg):

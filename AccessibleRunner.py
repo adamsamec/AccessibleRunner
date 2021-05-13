@@ -70,6 +70,7 @@ class AccessibleRunner(wx.Frame):
     hbox4.Add(self.runButton, 1, wx.EXPAND | wx.ALIGN_LEFT | wx.ALL, 5)
     
     self.killButton = wx.Button(self.panel, label = 'Kill process')
+    self.killButton.Disable()
     self.killButton.Bind(wx.EVT_BUTTON, self.onKillButtonClick)
     hbox4.Add(self.killButton, 1, wx.EXPAND | wx.ALIGN_LEFT | wx.ALL, 5)    
     
@@ -105,6 +106,9 @@ class AccessibleRunner(wx.Frame):
     
   def onRunButtonClick(self, event):
     if self.process is None:
+      self.runButton.Disable()
+      self.killButton.Enable()
+      
       command = self.commandTextbox.GetValue()
       args = self.argsTextbox.GetValue()
       dir = self.dirTextbox.GetValue()
@@ -123,6 +127,9 @@ class AccessibleRunner(wx.Frame):
   def onKillButtonClick(self, event):
     if self.process:
       self.killProcessTree()
+      
+      self.runButton.Enable()
+      self.killButton.Disable()
     
   def onClearButtonClick(self, event):
     self.setOutput('')
@@ -158,6 +165,9 @@ class AccessibleRunner(wx.Frame):
       self.setOutput(line.decode('utf-8'), True)
     out.close()
     self.process = None
+    
+    self.runButton.Enable()
+    self.killButton.Disable()
     
 def main():
   app = wx.App()

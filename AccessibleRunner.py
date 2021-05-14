@@ -1,13 +1,11 @@
 # TODO
-# * Test more arguments, e.g., on git branch -v
-# * Create keyboard shortcuts.
+# * File names encoding bug.
 
 import sys
 import wx
-import os
-import signal
 import psutil
 from subprocess import Popen, PIPE, STDOUT
+import shlex
 from threading  import Thread
 
 class AccessibleRunner(wx.Frame):
@@ -33,11 +31,12 @@ class AccessibleRunner(wx.Frame):
     controlDown = event.ControlDown() # On Windows and Linux this will be the Control key, but on macOS this will be the Cmd key
     shiftDown = event.ShiftDown()
     
-    if (key == 67) and controlDown and shiftDown:
+    if (key == 67) and controlDown and shiftDown: # Control + Shift + C
       self.copyOutput()
-    elif (key == 68) and controlDown and shiftDown:
+    elif (key == 68) and controlDown and shiftDown: # Control + Shift + D
       self.clearOutput()
-    event.Skip()
+    else:
+      event.Skip()
 
   def addWidgets(self):
     self.panel = wx.Panel(self)    
@@ -119,12 +118,13 @@ class AccessibleRunner(wx.Frame):
       
       command = self.commandTextbox.GetValue()
       args = self.argsTextbox.GetValue()
+      commandAndArgs = [command] + shlex.split(args)
       dir = self.dirTextbox.GetValue()
       if dir == '':
         dir = None
       
       try:
-        self.process = Popen([command, args], shell = True, stdout = PIPE, stderr = STDOUT, cwd = dir)
+        self.process = Popen(commandAndArgs, shell = True, stdout = PIPE, stderr = STDOUT, cwd = dir)
       except NotADirectoryError:
         self.setOutput('Error: The directory does not exist.\n', True)
       else:        
@@ -161,7 +161,6 @@ class AccessibleRunner(wx.Frame):
       wx.TheClipboard.Close()
     
   def killProcessTree(self):
-    #os.kill(self.process.pid, signal.CTRL_C_EVENT) # This cannot be used, as it terminates the whole app
     parent = psutil.Process(self.process.pid)
     children = parent.children(recursive = True)
     for child in children:

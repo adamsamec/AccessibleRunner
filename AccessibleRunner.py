@@ -1,4 +1,5 @@
 # TODO
+# * Test more arguments, e.g., on git branch -v
 # * Create keyboard shortcuts.
 
 import sys
@@ -15,6 +16,7 @@ class AccessibleRunner(wx.Frame):
     self.process = None
     
     self.Bind(wx.EVT_CLOSE, self.onWindowClose)
+    self.Bind(wx.EVT_CHAR_HOOK, self.charHook)
     
     self.addWidgets()
     self.Centre()
@@ -25,6 +27,17 @@ class AccessibleRunner(wx.Frame):
     if self.process:
       self.killProcessTree()
     self.Destroy()
+    
+  def charHook(self, event):
+    key = event.GetKeyCode()
+    controlDown = event.ControlDown() # On Windows and Linux this will be the Control key, but on macOS this will be the Cmd key
+    shiftDown = event.ShiftDown()
+    
+    if (key == 67) and controlDown and shiftDown:
+      self.copyOutput()
+    elif (key == 68) and controlDown and shiftDown:
+      self.clearOutput()
+    event.Skip()
 
   def addWidgets(self):
     self.panel = wx.Panel(self)    

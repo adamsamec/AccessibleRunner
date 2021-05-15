@@ -1,12 +1,15 @@
 # TODO
-# * File names encoding bug.
+# * Unable to close the window on macOS.
 
+import os
 import sys
 import wx
 import psutil
-from subprocess import Popen, PIPE, STDOUT
 import shlex
+from subprocess import call, Popen, PIPE, STDOUT
 from threading  import Thread
+
+ON_WINDOWS = os.name == 'nt'
 
 class AccessibleRunner(wx.Frame):
   def __init__(self, parent, title):
@@ -28,7 +31,7 @@ class AccessibleRunner(wx.Frame):
     
   def charHook(self, event):
     key = event.GetKeyCode()
-    controlDown = event.ControlDown() # On Windows and Linux this will be the Control key, but on macOS this will be the Cmd key
+    controlDown = event.ControlDown() # On Windows and Linux this will be the Control key, on macOS this will be the Cmd key
     shiftDown = event.ShiftDown()
     
     if (key == 67) and controlDown and shiftDown: # Control + Shift + C
@@ -41,66 +44,69 @@ class AccessibleRunner(wx.Frame):
   def addWidgets(self):
     self.panel = wx.Panel(self)    
     vbox = wx.BoxSizer(wx.VERTICAL)
-    
-    # Command textbox
     hbox1 = wx.BoxSizer(wx.HORIZONTAL)
     
+    # Command textbox
     self.commandLabel = wx.StaticText(self.panel, -1, 'Command') 
     hbox1.Add(self.commandLabel, 1, wx.EXPAND | wx.ALIGN_LEFT | wx.ALL, 5)
-    
     self.commandTextbox = wx.TextCtrl(self.panel)
     hbox1.Add(self.commandTextbox, 1, wx.EXPAND | wx.ALIGN_LEFT | wx.ALL, 5)
     
-    # Arguments textbox
     hbox2 = wx.BoxSizer(wx.HORIZONTAL)
     
+    # Arguments textbox
     self.argsLabel = wx.StaticText(self.panel, -1, 'Arguments') 
     hbox2.Add(self.argsLabel, 1, wx.EXPAND | wx.ALIGN_LEFT | wx.ALL, 5)
-    
     self.argsTextbox = wx.TextCtrl(self.panel)
     hbox2.Add(self.argsTextbox, 1, wx.EXPAND | wx.ALIGN_LEFT | wx.ALL, 5)
     
-    # Working directory textbox
     hbox3 = wx.BoxSizer(wx.HORIZONTAL)
     
+    # Working directory textbox
     self.dirLabel = wx.StaticText(self.panel, -1, 'Working directory') 
     hbox3.Add(self.dirLabel, 1, wx.EXPAND | wx.ALIGN_LEFT | wx.ALL, 5)
-    
     self.dirTextbox = wx.TextCtrl(self.panel)
     hbox3.Add(self.dirTextbox, 1, wx.EXPAND | wx.ALIGN_LEFT | wx.ALL, 5)
     
-    # Run button
     hbox4 = wx.BoxSizer(wx.HORIZONTAL)
     
+    # Use shell checkbox
+    self.useShellCheckbox = wx.CheckBox(self.panel, label = 'Execute using shell',pos = (10, 10))
+    self.useShellCheckbox.SetValue(True)
+    hbox4.Add(self.useShellCheckbox, 1, wx.EXPAND | wx.ALIGN_LEFT | wx.ALL, 5)
+
+    hbox5 = wx.BoxSizer(wx.HORIZONTAL)
+
+    # Run button
     self.runButton = wx.Button(self.panel, label = 'Run')
     self.runButton.Bind(wx.EVT_BUTTON, self.onRunButtonClick)
-    hbox4.Add(self.runButton, 1, wx.EXPAND | wx.ALIGN_LEFT | wx.ALL, 5)
+    hbox5.Add(self.runButton, 1, wx.EXPAND | wx.ALIGN_LEFT | wx.ALL, 5)
     
+    # Kill button
     self.killButton = wx.Button(self.panel, label = 'Kill process')
     self.killButton.Disable()
     self.killButton.Bind(wx.EVT_BUTTON, self.onKillButtonClick)
-    hbox4.Add(self.killButton, 1, wx.EXPAND | wx.ALIGN_LEFT | wx.ALL, 5)    
+    hbox5.Add(self.killButton, 1, wx.EXPAND | wx.ALIGN_LEFT | wx.ALL, 5)
     
-    # Output textbox
-    hbox5 = wx.BoxSizer(wx.HORIZONTAL)
-    
-    self.outputLabel = wx.StaticText(self.panel, -1, "Output") 
-    hbox5.Add(self.outputLabel, 1, wx.EXPAND | wx.ALIGN_LEFT | wx.ALL, 5)
-    
-    self.outputTextbox = wx.TextCtrl(self.panel, size = (400, 150), style = wx.TE_MULTILINE | wx.TE_READONLY)
-    hbox5.Add(self.outputTextbox, 1, wx.EXPAND | wx.ALIGN_LEFT | wx.ALL, 5)
-    
-    # Clear button
     hbox6 = wx.BoxSizer(wx.HORIZONTAL)
     
+    # Output textbox
+    self.outputLabel = wx.StaticText(self.panel, -1, "Output") 
+    hbox6.Add(self.outputLabel, 1, wx.EXPAND | wx.ALIGN_LEFT | wx.ALL, 5)
+    self.outputTextbox = wx.TextCtrl(self.panel, size = (400, 150), style = wx.TE_MULTILINE | wx.TE_READONLY)
+    hbox6.Add(self.outputTextbox, 1, wx.EXPAND | wx.ALIGN_LEFT | wx.ALL, 5)
+    
+    hbox7 = wx.BoxSizer(wx.HORIZONTAL)
+    
+    # Clear button
     self.clearButton = wx.Button(self.panel, label = 'Clear output')
     self.clearButton.Bind(wx.EVT_BUTTON, self.onClearButtonClick)
-    hbox6.Add(self.clearButton, 1, wx.EXPAND | wx.ALIGN_LEFT | wx.ALL, 5)
+    hbox7.Add(self.clearButton, 1, wx.EXPAND | wx.ALIGN_LEFT | wx.ALL, 5)
     
     # Copy button
     self.copyButton = wx.Button(self.panel, label = 'Copy output')
     self.copyButton.Bind(wx.EVT_BUTTON, self.onCopyButtonClick)
-    hbox6.Add(self.copyButton, 1, wx.EXPAND | wx.ALIGN_LEFT | wx.ALL, 5)
+    hbox7.Add(self.copyButton, 1, wx.EXPAND | wx.ALIGN_LEFT | wx.ALL, 5)
     
     vbox.Add(hbox1)
     vbox.Add(hbox2)
@@ -108,36 +114,48 @@ class AccessibleRunner(wx.Frame):
     vbox.Add(hbox4)
     vbox.Add(hbox5)
     vbox.Add(hbox6)
-      
+    vbox.Add(hbox7)
+
     self.panel.SetSizer(vbox)
     
   def onRunButtonClick(self, event):
-    if self.process is None:
-      self.runButton.Disable()
-      self.killButton.Enable()
+    if self.process is not None:
+      return
+    self.runButton.Disable()
+    self.killButton.Enable()
+    
+    command = self.commandTextbox.GetValue()
+    args = self.argsTextbox.GetValue()
+    #commandAndArgs = [command] + shlex.split(args) # This didn't work in macOS
+    commandAndArgs = command + ' ' + args
+    useShell = self.useShellCheckbox.GetValue()
+    dir = self.dirTextbox.GetValue()
+    if dir == '':
+      dir = None
+    
+    # On Windows, set the proper code page for console
+    # See https://stackoverflow.com/questions/67524114/python-how-to-decode-file-names-retrieved-from-dir-command-using-subprocess
+    if ON_WINDOWS:
+      call(['chcp', '65001'], shell = True)
       
-      command = self.commandTextbox.GetValue()
-      args = self.argsTextbox.GetValue()
-      commandAndArgs = [command] + shlex.split(args)
-      dir = self.dirTextbox.GetValue()
-      if dir == '':
-        dir = None
-      
-      try:
-        self.process = Popen(commandAndArgs, shell = True, stdout = PIPE, stderr = STDOUT, cwd = dir)
-      except NotADirectoryError:
-        self.setOutput('Error: The directory does not exist.\n', True)
-      else:        
-        thread = Thread(target=self.fetchOutput, args = (self.process.stdout, None))
-        thread.daemon = True # Thread dies with the program
-        thread.start()
+      # Try running the command with the arguments
+    try:
+      self.process = Popen(commandAndArgs, shell = useShell, stdout = PIPE, stderr = STDOUT, cwd = dir)
+    except (NotADirectoryError, FileNotFoundError):
+      self.setOutput('Error: The working directory does not exist.\n', True)
+    else:
+      # Start fetching the process output in a new thread
+      thread = Thread(target=self.fetchOutput, args = (self.process.stdout, None))
+      thread.daemon = True # Thread dies with the program
+      thread.start()
     
   def onKillButtonClick(self, event):
-    if self.process:
-      self.killProcessTree()
-      
-      self.runButton.Enable()
-      self.killButton.Disable()
+    if not self.process:
+      return
+    self.killProcessTree()
+    
+    self.runButton.Enable()
+    self.killButton.Disable()
     
   def onClearButtonClick(self, event):
     self.clearOutput()
@@ -175,7 +193,7 @@ class AccessibleRunner(wx.Frame):
       
   def fetchOutput(self, out, arg):
     for line in iter(out.readline, b''):
-      self.setOutput(line.decode('windows-1250'), True)
+      self.setOutput(line.decode(), True)
     out.close()
     self.process = None
     

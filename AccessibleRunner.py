@@ -1,5 +1,6 @@
 # TODO
-# * Unable to close the window on macOS.
+# * Maybe make the command and args textboxes a single textbox for entering the command also with the arguments.
+# * Add menubar for macOS. After that, let Cmd + W close only the Window and Cmd + Q close the app.
 
 import os
 import sys
@@ -25,18 +26,18 @@ class AccessibleRunner(wx.Frame):
     self.Fit()
     
   def onWindowClose(self, event):
-    if self.process:
-      self.killProcessTree()
-    self.Destroy()
+    self.closeWindow()
     
   def charHook(self, event):
     key = event.GetKeyCode()
     controlDown = event.ControlDown() # On Windows and Linux this will be the Control key, on macOS this will be the Cmd key
     shiftDown = event.ShiftDown()
     
-    if (key == 67) and controlDown and shiftDown: # Control + Shift + C
+    if (key == ord('Q')) and controlDown: # Control/Cmd + Q
+      self.closeWindow()
+    if (key == ord('C')) and controlDown and shiftDown: # Control/Cmd + Shift + C
       self.copyOutput()
-    elif (key == 68) and controlDown and shiftDown: # Control + Shift + D
+    elif (key == ord('D')) and controlDown and shiftDown: # Control/Cmd + Shift + D
       self.clearOutput()
     else:
       event.Skip()
@@ -44,77 +45,73 @@ class AccessibleRunner(wx.Frame):
   def addWidgets(self):
     self.panel = wx.Panel(self)    
     vbox = wx.BoxSizer(wx.VERTICAL)
-    hbox1 = wx.BoxSizer(wx.HORIZONTAL)
     
     # Command textbox
+    commandHbox = wx.BoxSizer(wx.HORIZONTAL)
     self.commandLabel = wx.StaticText(self.panel, -1, 'Command') 
-    hbox1.Add(self.commandLabel, 1, wx.EXPAND | wx.ALIGN_LEFT | wx.ALL, 5)
+    commandHbox.Add(self.commandLabel, 1, wx.EXPAND | wx.ALIGN_LEFT | wx.ALL, 5)
     self.commandTextbox = wx.TextCtrl(self.panel)
-    hbox1.Add(self.commandTextbox, 1, wx.EXPAND | wx.ALIGN_LEFT | wx.ALL, 5)
-    
-    hbox2 = wx.BoxSizer(wx.HORIZONTAL)
+    commandHbox.Add(self.commandTextbox, 1, wx.EXPAND | wx.ALIGN_LEFT | wx.ALL, 5)
     
     # Arguments textbox
-    self.argsLabel = wx.StaticText(self.panel, -1, 'Arguments') 
-    hbox2.Add(self.argsLabel, 1, wx.EXPAND | wx.ALIGN_LEFT | wx.ALL, 5)
+    argsHbox = wx.BoxSizer(wx.HORIZONTAL)
+    self.argsLabel = wx.StaticText(self.panel, -1, 'Arguments')
+    argsHbox.Add(self.argsLabel, 1, wx.EXPAND | wx.ALIGN_LEFT | wx.ALL, 5)
     self.argsTextbox = wx.TextCtrl(self.panel)
-    hbox2.Add(self.argsTextbox, 1, wx.EXPAND | wx.ALIGN_LEFT | wx.ALL, 5)
-    
-    hbox3 = wx.BoxSizer(wx.HORIZONTAL)
+    argsHbox.Add(self.argsTextbox, 1, wx.EXPAND | wx.ALIGN_LEFT | wx.ALL, 5)
     
     # Working directory textbox
-    self.dirLabel = wx.StaticText(self.panel, -1, 'Working directory') 
-    hbox3.Add(self.dirLabel, 1, wx.EXPAND | wx.ALIGN_LEFT | wx.ALL, 5)
+    dirHbox = wx.BoxSizer(wx.HORIZONTAL)
+    self.dirLabel = wx.StaticText(self.panel, -1, 'Working directory')
+    dirHbox.Add(self.dirLabel, 1, wx.EXPAND | wx.ALIGN_LEFT | wx.ALL, 5)
     self.dirTextbox = wx.TextCtrl(self.panel)
-    hbox3.Add(self.dirTextbox, 1, wx.EXPAND | wx.ALIGN_LEFT | wx.ALL, 5)
-    
-    hbox4 = wx.BoxSizer(wx.HORIZONTAL)
+    dirHbox.Add(self.dirTextbox, 1, wx.EXPAND | wx.ALIGN_LEFT | wx.ALL, 5)
     
     # Use shell checkbox
+    useShellHbox = wx.BoxSizer(wx.HORIZONTAL)
     self.useShellCheckbox = wx.CheckBox(self.panel, label = 'Execute using shell',pos = (10, 10))
     self.useShellCheckbox.SetValue(True)
-    hbox4.Add(self.useShellCheckbox, 1, wx.EXPAND | wx.ALIGN_LEFT | wx.ALL, 5)
+    useShellHbox.Add(self.useShellCheckbox, 1, wx.EXPAND | wx.ALIGN_LEFT | wx.ALL, 5)
 
-    hbox5 = wx.BoxSizer(wx.HORIZONTAL)
+    runAndKillHbox = wx.BoxSizer(wx.HORIZONTAL)
 
     # Run button
     self.runButton = wx.Button(self.panel, label = 'Run')
     self.runButton.Bind(wx.EVT_BUTTON, self.onRunButtonClick)
-    hbox5.Add(self.runButton, 1, wx.EXPAND | wx.ALIGN_LEFT | wx.ALL, 5)
+    runAndKillHbox.Add(self.runButton, 1, wx.EXPAND | wx.ALIGN_LEFT | wx.ALL, 5)
     
     # Kill button
     self.killButton = wx.Button(self.panel, label = 'Kill process')
     self.killButton.Disable()
     self.killButton.Bind(wx.EVT_BUTTON, self.onKillButtonClick)
-    hbox5.Add(self.killButton, 1, wx.EXPAND | wx.ALIGN_LEFT | wx.ALL, 5)
-    
-    hbox6 = wx.BoxSizer(wx.HORIZONTAL)
+    runAndKillHbox.Add(self.killButton, 1, wx.EXPAND | wx.ALIGN_LEFT | wx.ALL, 5)
     
     # Output textbox
-    self.outputLabel = wx.StaticText(self.panel, -1, "Output") 
-    hbox6.Add(self.outputLabel, 1, wx.EXPAND | wx.ALIGN_LEFT | wx.ALL, 5)
+    outputHbox = wx.BoxSizer(wx.HORIZONTAL)
+    self.outputLabel = wx.StaticText(self.panel, -1, "Output")
+    outputHbox.Add(self.outputLabel, 1, wx.EXPAND | wx.ALIGN_LEFT | wx.ALL, 5)
     self.outputTextbox = wx.TextCtrl(self.panel, size = (400, 150), style = wx.TE_MULTILINE | wx.TE_READONLY)
-    hbox6.Add(self.outputTextbox, 1, wx.EXPAND | wx.ALIGN_LEFT | wx.ALL, 5)
+    outputHbox.Add(self.outputTextbox, 1, wx.EXPAND | wx.ALIGN_LEFT | wx.ALL, 5)
     
-    hbox7 = wx.BoxSizer(wx.HORIZONTAL)
+    clearAndCopyHbox = wx.BoxSizer(wx.HORIZONTAL)
     
     # Clear button
     self.clearButton = wx.Button(self.panel, label = 'Clear output')
     self.clearButton.Bind(wx.EVT_BUTTON, self.onClearButtonClick)
-    hbox7.Add(self.clearButton, 1, wx.EXPAND | wx.ALIGN_LEFT | wx.ALL, 5)
+    clearAndCopyHbox.Add(self.clearButton, 1, wx.EXPAND | wx.ALIGN_LEFT | wx.ALL, 5)
     
     # Copy button
     self.copyButton = wx.Button(self.panel, label = 'Copy output')
     self.copyButton.Bind(wx.EVT_BUTTON, self.onCopyButtonClick)
-    hbox7.Add(self.copyButton, 1, wx.EXPAND | wx.ALIGN_LEFT | wx.ALL, 5)
+    clearAndCopyHbox.Add(self.copyButton, 1, wx.EXPAND | wx.ALIGN_LEFT | wx.ALL, 5)
     
-    vbox.Add(hbox1)
-    vbox.Add(hbox2)
-    vbox.Add(hbox3)
-    vbox.Add(hbox4)
-    vbox.Add(hbox5)
-    vbox.Add(hbox6)
-    vbox.Add(hbox7)
+    vbox.Add(commandHbox)
+    vbox.Add(argsHbox)
+    vbox.Add(dirHbox)
+    vbox.Add(useShellHbox)
+    vbox.Add(runAndKillHbox)
+    vbox.Add(outputHbox)
+    vbox.Add(clearAndCopyHbox)
 
     self.panel.SetSizer(vbox)
     
@@ -162,7 +159,12 @@ class AccessibleRunner(wx.Frame):
     
   def onCopyButtonClick(self, event):
     self.copyOutput()
-      
+    
+  def closeWindow(self):
+    if self.process:
+      self.killProcessTree()
+    self.Destroy()
+
   def clearOutput(self):
     self.setOutput('')
         

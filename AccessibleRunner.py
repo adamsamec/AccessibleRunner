@@ -137,7 +137,7 @@ class AccessibleRunner(wx.Frame):
       
       # Try running the command with the arguments
     try:
-      self.process = Popen(commandAndArgs, shell = useShell, stdout = PIPE, stderr = STDOUT, cwd = dir)
+      self.process = Popen(commandAndArgs, shell = useShell, stdout = PIPE, stderr = STDOUT, stdin = PIPE, cwd = dir)
     except (NotADirectoryError, FileNotFoundError):
       self.setOutput('Error: The working directory does not exist.\n', True)
     else:

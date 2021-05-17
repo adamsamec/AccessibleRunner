@@ -11,7 +11,7 @@ AccessibleRunner supports the following keyboard shortcuts. On macOS, Use the Cm
 ## Download
 While the app is created in Python, the following standalone binary with no dependancies is also provided for download.
 
-* [Download AccessibleRunner for Windows (64-bit)](https://github.com/adamsamec/AccessibleRunner/blob/master/dist/win-x64/AccessibleRunner.exe?raw=true).
+* [Download AccessibleRunner for Windows (32 bit)](https://github.com/adamsamec/AccessibleRunner/blob/master/dist/win-32bit/AccessibleRunner.exe?raw=true).
 * [Download AccessibleRunner source file](https://raw.githubusercontent.com/adamsamec/AccessibleRunner/master/AccessibleRunner.py?raw=true).
 
 ## Dependancies

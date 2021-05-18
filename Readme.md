@@ -9,10 +9,11 @@ AccessibleRunner supports the following keyboard shortcuts. On macOS, Use the Cm
 * Control + Q: Quits the application.
 
 ## Download
-While the app is created in Python, the following standalone binary with no dependancies is also provided for download.
+### Portable version
+AccessibleRunner is available as a portable version. After downloading the ZIP file by clicking the link below, extract the archive and run the application using the AccessibleRunner.exe file. [Download AccessibleRunner sfor Windows (32 bit)](https://github.com/adamsamec/AccessibleRunner/blob/master/dist/Win-32bit/AccessibleRunner%20(Win-32bit).zip?raw=true).
 
-* [Download AccessibleRunner for Windows (32 bit)](https://github.com/adamsamec/AccessibleRunner/blob/master/dist/win-32bit/AccessibleRunner.exe?raw=true).
-* [Download AccessibleRunner source file](https://raw.githubusercontent.com/adamsamec/AccessibleRunner/master/AccessibleRunner.py?raw=true).
+### Source file
+AccessibleRunner is developed in Python. [Download  the source file here](https://raw.githubusercontent.com/adamsamec/AccessibleRunner/master/src/AccessibleRunner.py?raw=true).
 
 ## Dependancies
 The Python version of AccessibleRunner requires the [wxPython](https://www.wxpython.org) and [psutil](https://pypi.org/project/psutil/) Python modules, which can be installed using [PIP](https://pypi.org/project/pip/) like this:

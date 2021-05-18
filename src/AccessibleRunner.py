@@ -1,7 +1,6 @@
 # TODO
-# * Maybe make the command and args textboxes a single textbox for entering the command together with the arguments.
 # * Play a notification sound whenever the new output matches a given regular expression. This way the user could be notified about error or successful compilation.
-# * Add a command and working directory history which will be loaded from external file and could be selected ideally using combobox..
+# * Add a command and working directory history which will be loaded from external file and could be selected ideally using combobox.
 # * Add menubar for macOS. After that, let Cmd + W close only the Window and Cmd + Q close the app.
 
 import os
@@ -55,13 +54,6 @@ class AccessibleRunner(wx.Frame):
     self.commandTextbox = wx.TextCtrl(self.panel)
     commandHbox.Add(self.commandTextbox, 1, wx.EXPAND | wx.ALIGN_LEFT | wx.ALL, 5)
     
-    # Arguments textbox
-    argsHbox = wx.BoxSizer(wx.HORIZONTAL)
-    self.argsLabel = wx.StaticText(self.panel, -1, 'Arguments')
-    argsHbox.Add(self.argsLabel, 1, wx.EXPAND | wx.ALIGN_LEFT | wx.ALL, 5)
-    self.argsTextbox = wx.TextCtrl(self.panel)
-    argsHbox.Add(self.argsTextbox, 1, wx.EXPAND | wx.ALIGN_LEFT | wx.ALL, 5)
-    
     # Working directory textbox
     dirHbox = wx.BoxSizer(wx.HORIZONTAL)
     self.dirLabel = wx.StaticText(self.panel, -1, 'Working directory')
@@ -108,7 +100,6 @@ class AccessibleRunner(wx.Frame):
     clearAndCopyHbox.Add(self.copyButton, 1, wx.EXPAND | wx.ALIGN_LEFT | wx.ALL, 5)
     
     vbox.Add(commandHbox)
-    vbox.Add(argsHbox)
     vbox.Add(dirHbox)
     vbox.Add(useShellHbox)
     vbox.Add(runAndKillHbox)
@@ -124,9 +115,6 @@ class AccessibleRunner(wx.Frame):
     self.killButton.Enable()
     
     command = self.commandTextbox.GetValue()
-    args = self.argsTextbox.GetValue()
-    #commandAndArgs = [command] + shlex.split(args) # This didn't work in macOS
-    commandAndArgs = command + ' ' + args
     useShell = self.useShellCheckbox.GetValue()
     dir = self.dirTextbox.GetValue()
     if dir == '':
@@ -139,7 +127,7 @@ class AccessibleRunner(wx.Frame):
       
       # Try running the command with the arguments
     try:
-      self.process = Popen(commandAndArgs, shell = useShell, stdout = PIPE, stderr = STDOUT, stdin = PIPE, cwd = dir)
+      self.process = Popen(command, shell = useShell, stdout = PIPE, stderr = STDOUT, stdin = PIPE, cwd = dir)
     except (NotADirectoryError, FileNotFoundError):
       self.setOutput('Error: The working directory does not exist.\n', True)
     else:

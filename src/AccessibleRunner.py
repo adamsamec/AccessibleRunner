@@ -132,6 +132,8 @@ class AccessibleRunner(wx.Frame):
       self.process = Popen(command, shell = useShell, stdout = PIPE, stderr = STDOUT, stdin = PIPE, cwd = dir)
     except (NotADirectoryError, FileNotFoundError):
       self.setOutput('Error: The working directory does not exist.\n', True)
+      self.runButton.Enable()
+      self.killButton.Disable()
     else:
       # Start fetching the process output in a new thread
       thread = Thread(target=self.fetchOutput, args = (self.process.stdout, None))

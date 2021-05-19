@@ -86,7 +86,7 @@ class AccessibleRunner(wx.Frame):
     outputHbox = wx.BoxSizer(wx.HORIZONTAL)
     self.outputLabel = wx.StaticText(self.panel, -1, "Output")
     outputHbox.Add(self.outputLabel, 1, wx.EXPAND | wx.ALIGN_LEFT | wx.ALL, 5)
-    self.outputTextbox = wx.TextCtrl(self.panel, size = (400, 150), style = wx.TE_MULTILINE | wx.TE_READONLY)
+    self.outputTextbox = wx.TextCtrl(self.panel, size = (600, 150), style = wx.TE_MULTILINE | wx.TE_READONLY)
     outputHbox.Add(self.outputTextbox, 1, wx.EXPAND | wx.ALIGN_LEFT | wx.ALL, 5)
     
     clearAndCopyHbox = wx.BoxSizer(wx.HORIZONTAL)
@@ -130,7 +130,7 @@ class AccessibleRunner(wx.Frame):
       # Try running the command with the arguments
     try:
       self.process = Popen(command, shell = useShell, stdout = PIPE, stderr = STDOUT, stdin = PIPE, cwd = dir)
-    except (NotADirectoryError, FileNotFoundError):
+    except (NotADirectoryError, FileNotFoundError):         
       self.setOutput('Error: The working directory does not exist.\n', True)
       self.runButton.Enable()
       self.killButton.Disable()

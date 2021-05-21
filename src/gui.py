@@ -137,6 +137,16 @@ class GUI(wx.Frame):
       self.outputTextbox.SetFocus()
       self.runProcess()
       
+    # Control + K
+    elif (key == ord('K')) and onlyControlDown:
+      self.commandTextbox.SetFocus()
+      self.runner.killProcessTree()
+
+    # Control + L
+    elif (key == ord('L')) and onlyControlDown:
+      self.commandTextbox.SetFocus()
+
+
     # Control/Cmd + Q
     elif (key == ord('Q')) and onlyControlDown:
       self.cleanAndClose()
@@ -145,8 +155,8 @@ class GUI(wx.Frame):
     elif (key == ord('C')) and onlyControlAndShiftDown:
       self.runner.copyOutput()
       
-    # Control/Cmd + Shift + D
-    elif (key == ord('D')) and onlyControlAndShiftDown:
+    # Control/Cmd + D
+    elif (key == ord('D')) and onlyControlDown:
       self.runner.clearOutput()
     
     else:

@@ -1,13 +1,6 @@
 {
   "history": {
-    "commands": [
-      "dir",
-      "git status",
-      "yarn start:northstar"
-    ],
-    "dirs": [
-      "C:\\Users\\asamec\\Work\\Microsoft\\Programming\\teams-shortcuts-dialog\\fluentui",
-      "C:\\"
-    ]
+    "commands": [],
+    "dirs": []
   }
 }

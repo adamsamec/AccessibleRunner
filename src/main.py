@@ -1,7 +1,6 @@
 # TODO
 # * Is it possible to send narration message to screen reader?
 # * Play a notification sound whenever the new output matches a given regular expression. This way the user could be notified about error or successful compilation.
-# * Add a command and working directory history which will be loaded from external file and could be selected ideally using combobox.
 # * Add menubar for macOS. After that, let Cmd + W close only the Window and Cmd + Q close the app.
 
 import os

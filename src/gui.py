@@ -3,10 +3,11 @@ import wx
 # GUI class.
 class GUI(wx.Frame):
 
-  # Initializes the object by linking it with the given AccessibilityRunner object, binds the event handlers, and creates the whole GUI.
-  def __init__(self, parent, runner, title):
+  # Initializes the object by linking it with the given AccessibilityRunner and Config objects, binds the event handlers, and creates the whole GUI.
+  def __init__(self, parent, runner, config, title):
     super(GUI, self).__init__(parent, title = title)
     self.runner = runner
+    self.config = config
     
     self.Bind(wx.EVT_CLOSE, self.onWindowClose)
     self.Bind(wx.EVT_CHAR_HOOK  , self.charHook)
@@ -21,20 +22,19 @@ class GUI(wx.Frame):
     self.panel = wx.Panel(self)    
     vbox = wx.BoxSizer(wx.VERTICAL)
     
-    # Command textbox
+    # Command combobox
     commandHbox = wx.BoxSizer(wx.HORIZONTAL)
     self.commandLabel = wx.StaticText(self.panel, -1, 'Command') 
     commandHbox.Add(self.commandLabel, 1, wx.EXPAND | wx.ALIGN_LEFT | wx.ALL, 5)
-    self.commandTextbox = wx.TextCtrl(self.panel)
-    #self.commandTextbox.Bind(wx.EVT_CHAR_HOOK, self.charHookAtCommand)
-    commandHbox.Add(self.commandTextbox, 1, wx.EXPAND | wx.ALIGN_LEFT | wx.ALL, 5)
+    self.commandCombobox = wx.ComboBox(self.panel, choices = self.config.history['commands'])
+    commandHbox.Add(self.commandCombobox, 1, wx.EXPAND | wx.ALIGN_LEFT | wx.ALL, 5)
     
-    # Working directory textbox
+    # Working directory combobox
     dirHbox = wx.BoxSizer(wx.HORIZONTAL)
     self.dirLabel = wx.StaticText(self.panel, -1, 'Working directory')
     dirHbox.Add(self.dirLabel, 1, wx.EXPAND | wx.ALIGN_LEFT | wx.ALL, 5)
-    self.dirTextbox = wx.TextCtrl(self.panel)
-    dirHbox.Add(self.dirTextbox, 1, wx.EXPAND | wx.ALIGN_LEFT | wx.ALL, 5)
+    self.dirCombobox = wx.ComboBox(self.panel, choices = self.config.history['dirs'])
+    dirHbox.Add(self.dirCombobox, 1, wx.EXPAND | wx.ALIGN_LEFT | wx.ALL, 5)
     
     # Use shell checkbox
     useShellHbox = wx.BoxSizer(wx.HORIZONTAL)
@@ -100,12 +100,24 @@ class GUI(wx.Frame):
     
   # Runs the process using the values of the relevant textboxes.
   def runProcess(self):
-    command = self.commandTextbox.GetValue()
-    directory = self.dirTextbox.GetValue()
-    if directory == '':
-      directory = None
+    command = self.commandCombobox.GetValue()
+    dir = self.dirCombobox.GetValue()
     useShell = self.useShellCheckbox.GetValue()
-    self.runner.runProcess(command, directory, useShell)
+    self.runner.runProcess(command, dir, useShell)
+    
+  # Sets the given choices to the given combobox.
+  def setChoices(self, combobox, choices):
+    combobox.Clear()
+    for choice in choices:
+      combobox.Append(choice)
+      
+  # Sets the given choices to the command combobox.
+  def setCommandChoices(self, choices):
+    self.setChoices(self.commandCombobox, choices)
+
+  # Sets the given choices to the directory combobox.
+  def setDirChoices(self, choices):
+    self.setChoices(self.dirCombobox, choices)
 
   # Sets or appends the given text to the command output textbox.
   def setOutput(self, text, append = False):
@@ -139,12 +151,12 @@ class GUI(wx.Frame):
       
     # Control + K
     elif (key == ord('K')) and onlyControlDown:
-      self.commandTextbox.SetFocus()
+      self.commandCombobox.SetFocus()
       self.runner.killProcessTree()
 
     # Control + L
     elif (key == ord('L')) and onlyControlDown:
-      self.commandTextbox.SetFocus()
+      self.commandCombobox.SetFocus()
 
 
     # Control/Cmd + Q

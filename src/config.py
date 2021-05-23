@@ -19,12 +19,14 @@ class Config:
     # Parse the configuration file and save it as a dictionary
     config = json.loads(content)
     self.history = config['history']
+    self.settings = config['settings']
     
   # Saves the current configuration to the config file.
-  def save(self):
+  def saveToFile(self):
     path = Config.CONFIG_PATH
     with open(path, 'w', encoding='utf-8') as file:
       config = {
         'history': self.history,
+        'settings': self.settings,
       }
       json.dump(config, file, indent = 2)

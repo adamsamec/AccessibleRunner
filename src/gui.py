@@ -1,3 +1,4 @@
+import os
 import wx
 
 # Main frame class.
@@ -36,6 +37,11 @@ class MainFrame(wx.Frame):
     dirHbox.Add(dirLabel, 1, wx.EXPAND | wx.ALIGN_LEFT | wx.ALL, 5)
     self.dirCombobox = wx.ComboBox(self.panel, choices = history['dirs'])
     dirHbox.Add(self.dirCombobox, 1, wx.EXPAND | wx.ALIGN_LEFT | wx.ALL, 5)
+    
+    # Working directory choose button
+    self.chooseDirButton = wx.Button(self.panel, label = 'Chooce directory')
+    self.chooseDirButton.Bind(wx.EVT_BUTTON, self.onChooseDirButtonClick)
+    dirHbox.Add(self.chooseDirButton, 1, wx.EXPAND | wx.ALIGN_LEFT | wx.ALL, 5)
     
     # Use shell checkbox
     useShellHbox = wx.BoxSizer(wx.HORIZONTAL)
@@ -189,6 +195,19 @@ class MainFrame(wx.Frame):
     print(    'test')
     print(hasAnyModifiers)
     print(key)
+    
+  # Handles the choose directory button click.
+  def onChooseDirButtonClick(self, event):
+    # Determine the default path from the working directory combobox
+    path = self.dirCombobox.GetValue()
+    path = path if os.path.isdir(path) else ''
+    
+    # Create and show the directory chooser dialog
+    dialog = wx.DirDialog(self, message = 'Choose a working directory', defaultPath = path)
+    if dialog.ShowModal() == wx.ID_OK:
+      path = dialog.GetPath()
+      self.dirCombobox.SetValue(path)
+    dialog.Destroy()
     
   # Handles the run button click.
   def onRunButtonClick(self, event):

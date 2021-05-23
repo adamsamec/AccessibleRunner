@@ -1,11 +1,11 @@
 import wx
 
-# GUI class.
-class GUI(wx.Frame):
+# Main frame class.
+class MainFrame(wx.Frame):
 
   # Initializes the object by linking it with the given AccessibilityRunner and Config objects, binds the event handlers, and creates the whole GUI.
-  def __init__(self, parent, runner, config, title):
-    super(GUI, self).__init__(parent, title = title)
+  def __init__(self, runner, config, title, parent = None):
+    super(MainFrame, self).__init__(parent, title = title)
     self.runner = runner
     self.config = config
     
@@ -21,24 +21,25 @@ class GUI(wx.Frame):
   def addWidgets(self):
     self.panel = wx.Panel(self)    
     vbox = wx.BoxSizer(wx.VERTICAL)
+    history = self.config.history
     
     # Command combobox
     commandHbox = wx.BoxSizer(wx.HORIZONTAL)
-    self.commandLabel = wx.StaticText(self.panel, -1, 'Command') 
-    commandHbox.Add(self.commandLabel, 1, wx.EXPAND | wx.ALIGN_LEFT | wx.ALL, 5)
-    self.commandCombobox = wx.ComboBox(self.panel, choices = self.config.history['commands'])
+    commandLabel = wx.StaticText(self.panel, -1, 'Command') 
+    commandHbox.Add(commandLabel, 1, wx.EXPAND | wx.ALIGN_LEFT | wx.ALL, 5)
+    self.commandCombobox = wx.ComboBox(self.panel, choices = history['commands'])
     commandHbox.Add(self.commandCombobox, 1, wx.EXPAND | wx.ALIGN_LEFT | wx.ALL, 5)
     
     # Working directory combobox
     dirHbox = wx.BoxSizer(wx.HORIZONTAL)
-    self.dirLabel = wx.StaticText(self.panel, -1, 'Working directory')
-    dirHbox.Add(self.dirLabel, 1, wx.EXPAND | wx.ALIGN_LEFT | wx.ALL, 5)
-    self.dirCombobox = wx.ComboBox(self.panel, choices = self.config.history['dirs'])
+    dirLabel = wx.StaticText(self.panel, -1, 'Working directory')
+    dirHbox.Add(dirLabel, 1, wx.EXPAND | wx.ALIGN_LEFT | wx.ALL, 5)
+    self.dirCombobox = wx.ComboBox(self.panel, choices = history['dirs'])
     dirHbox.Add(self.dirCombobox, 1, wx.EXPAND | wx.ALIGN_LEFT | wx.ALL, 5)
     
     # Use shell checkbox
     useShellHbox = wx.BoxSizer(wx.HORIZONTAL)
-    self.useShellCheckbox = wx.CheckBox(self.panel, label = 'Execute using shell',pos = (10, 10))
+    self.useShellCheckbox = wx.CheckBox(self.panel, label = 'Execute using shell', pos = (10, 10))
     self.useShellCheckbox.SetValue(True)
     useShellHbox.Add(self.useShellCheckbox, 1, wx.EXPAND | wx.ALIGN_LEFT | wx.ALL, 5)
 
@@ -57,29 +58,34 @@ class GUI(wx.Frame):
     
     # Output textbox
     outputHbox = wx.BoxSizer(wx.HORIZONTAL)
-    self.outputLabel = wx.StaticText(self.panel, -1, 'Output')
-    outputHbox.Add(self.outputLabel, 1, wx.EXPAND | wx.ALIGN_LEFT | wx.ALL, 5)
+    outputLabel = wx.StaticText(self.panel, -1, 'Output')
+    outputHbox.Add(outputLabel, 1, wx.EXPAND | wx.ALIGN_LEFT | wx.ALL, 5)
     self.outputTextbox = wx.TextCtrl(self.panel, size = (600, 150), style = wx.TE_MULTILINE | wx.TE_READONLY)
     outputHbox.Add(self.outputTextbox, 1, wx.EXPAND | wx.ALIGN_LEFT | wx.ALL, 5)
     
-    clearAndCopyHbox = wx.BoxSizer(wx.HORIZONTAL)
+    clearCopySettingsHbox = wx.BoxSizer(wx.HORIZONTAL)
     
     # Clear button
     self.clearButton = wx.Button(self.panel, label = 'Clear output')
     self.clearButton.Bind(wx.EVT_BUTTON, self.onClearButtonClick)
-    clearAndCopyHbox.Add(self.clearButton, 1, wx.EXPAND | wx.ALIGN_LEFT | wx.ALL, 5)
+    clearCopySettingsHbox.Add(self.clearButton, 1, wx.EXPAND | wx.ALIGN_LEFT | wx.ALL, 5)
     
     # Copy button
     self.copyButton = wx.Button(self.panel, label = 'Copy output')
     self.copyButton.Bind(wx.EVT_BUTTON, self.onCopyButtonClick)
-    clearAndCopyHbox.Add(self.copyButton, 1, wx.EXPAND | wx.ALIGN_LEFT | wx.ALL, 5)
+    clearCopySettingsHbox.Add(self.copyButton, 1, wx.EXPAND | wx.ALIGN_LEFT | wx.ALL, 5)
     
+        # Settings button
+    self.settingsButton = wx.Button(self.panel, label = 'Settings')
+    self.settingsButton.Bind(wx.EVT_BUTTON, self.onSettingsButtonClick)
+    clearCopySettingsHbox.Add(self.settingsButton, 1, wx.EXPAND | wx.ALIGN_LEFT | wx.ALL, 5)
+
     vbox.Add(commandHbox)
     vbox.Add(dirHbox)
     vbox.Add(useShellHbox)
     vbox.Add(runAndKillHbox)
     vbox.Add(outputHbox)
-    vbox.Add(clearAndCopyHbox)
+    vbox.Add(clearCopySettingsHbox)
 
     self.panel.SetSizer(vbox)
     
@@ -107,7 +113,9 @@ class GUI(wx.Frame):
     
   # Sets the given choices to the given combobox.
   def setChoices(self, combobox, choices):
+    value = combobox.GetValue()
     combobox.Clear()
+    combobox.SetValue(value)
     for choice in choices:
       combobox.Append(choice)
       
@@ -190,6 +198,10 @@ class GUI(wx.Frame):
   def onKillButtonClick(self, event):
     self.runner.killProcessTree()
     
+  # Handles the settings button click.
+  def onSettingsButtonClick(self, event):
+    self.settingsDialog = SettingsDialog(self.runner, self.config, title = 'Settings | AccessibleRunner', parent = self)
+
   # Handles the clear button click.
   def onClearButtonClick(self, event):
     self.runner.clearOutput()
@@ -197,4 +209,83 @@ class GUI(wx.Frame):
   # Handles the copy button click.
   def onCopyButtonClick(self, event):
     self.runner.copyOutput()
-  
+
+# Settings dialog class.
+class SettingsDialog(wx.Dialog):
+
+  # Initializes the object by linking it with the given AccessibilityRunner and Config objects, binds the event handlers, and creates the whole GUI.
+  def __init__(self, runner, config, title, parent = None):
+    super(SettingsDialog, self).__init__(parent = parent, title = title)
+    self.runner = runner
+    self.config = config
+    
+    self.addWidgets()
+    self.Centre()
+    self.ShowModal()
+    self.Fit()
+
+  # Adds all the initial widgets to this frame.
+  def addWidgets(self):
+    self.panel = wx.Panel(self)    
+    vbox = wx.BoxSizer(wx.VERTICAL)
+    settings = self.config.settings
+    
+    # Play success sound checkbox
+    playSuccessHbox = wx.BoxSizer(wx.HORIZONTAL)
+    self.playSuccessCheckbox = wx.CheckBox(self.panel, label = 'Play success sound when regular expression matches', pos = (10, 10))
+    self.playSuccessCheckbox.SetValue(settings['playSuccessSound'])
+    playSuccessHbox.Add(self.playSuccessCheckbox, 1, wx.EXPAND | wx.ALIGN_LEFT | wx.ALL, 5)
+
+    # Success regex textbox
+    successRegexHbox = wx.BoxSizer(wx.HORIZONTAL)
+    successRegexLabel = wx.StaticText(self.panel, -1, 'Success regular expression') 
+    successRegexHbox.Add(successRegexLabel, 1, wx.EXPAND | wx.ALIGN_LEFT | wx.ALL, 5)
+    self.successRegexTextbox = wx.TextCtrl(self.panel, value = settings['successRegex'])
+    successRegexHbox.Add(self.successRegexTextbox, 1, wx.EXPAND | wx.ALIGN_LEFT | wx.ALL, 5)
+    
+    # Play error sound checkbox
+    playErrorHbox = wx.BoxSizer(wx.HORIZONTAL)
+    self.playErrorCheckbox = wx.CheckBox(self.panel, label = 'Play error sound when regular expression matches', pos = (10, 10))
+    self.playErrorCheckbox.SetValue(settings['playErrorSound'])
+    playErrorHbox.Add(self.playErrorCheckbox, 1, wx.EXPAND | wx.ALIGN_LEFT | wx.ALL, 5)
+
+    # Error regex textbox
+    errorRegexHbox = wx.BoxSizer(wx.HORIZONTAL)
+    errorRegexLabel = wx.StaticText(self.panel, -1, 'Error regular expression') 
+    errorRegexHbox.Add(errorRegexLabel, 1, wx.EXPAND | wx.ALIGN_LEFT | wx.ALL, 5)
+    self.errorRegexTextbox = wx.TextCtrl(self.panel, value = settings['errorRegex'])
+    errorRegexHbox.Add(self.errorRegexTextbox, 1, wx.EXPAND | wx.ALIGN_LEFT | wx.ALL, 5)
+
+    cancelAndCloseHbox = wx.BoxSizer(wx.HORIZONTAL)
+    
+    # Cancel button
+    self.cancelButton = wx.Button(self.panel, label = 'Cancel')
+    self.cancelButton.Bind(wx.EVT_BUTTON, self.onCancelButtonClick)
+    cancelAndCloseHbox.Add(self.cancelButton, 1, wx.EXPAND | wx.ALIGN_LEFT | wx.ALL, 5)
+
+    # Save and close button
+    self.closeButton = wx.Button(self.panel, label = 'Save and close')
+    self.closeButton.Bind(wx.EVT_BUTTON, self.onCloseButtonClick)
+    cancelAndCloseHbox.Add(self.closeButton, 1, wx.EXPAND | wx.ALIGN_LEFT | wx.ALL, 5)
+    
+    vbox.Add(playSuccessHbox)
+    vbox.Add(successRegexHbox)
+    vbox.Add(playErrorHbox)
+    vbox.Add(errorRegexHbox)
+    vbox.Add(cancelAndCloseHbox)
+    self.panel.SetSizer(vbox)
+    
+  # Handles the cancel button click.
+  def onCancelButtonClick(self, event):
+    self.Destroy()
+
+  # Handles the save and close button click.
+  def onCloseButtonClick(self, event):
+    settings = {
+      'playSuccessSound': self.playSuccessCheckbox.GetValue(),
+      'successRegex': self.successRegexTextbox.GetValue(),
+      'playErrorSound': self.playErrorCheckbox.GetValue(),
+      'errorRegex': self.errorRegexTextbox.GetValue(),
+    }
+    self.runner.setSettings(settings)
+    self.Destroy()

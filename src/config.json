@@ -2,5 +2,11 @@
   "history": {
     "commands": [],
     "dirs": []
+  },
+  "settings": {
+    "playSuccessSound": false,
+    "successRegex": "",
+    "playErrorSound": false,
+    "errorRegex": ""
   }
 }

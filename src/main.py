@@ -1,5 +1,4 @@
 # TODO
-# * Add folder chooser dialog for working directory.
 # * Is it possible to send narration message to screen reader?
 
 import os

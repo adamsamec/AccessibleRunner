@@ -3,7 +3,8 @@ AccessibleRunner is a simple Windows utility for running console commands with s
 
 ## Features
 * Command and working directory history. History items can be choosed by pressing the Down arrow key when the command or working directory combobox is focused.
-* In settings, AccessibleRunner can be configured so that notification sound will be played whenever the given regular expression mmatches a new output string. This way, if AccessibleRunner is not in foreground, one can get notified when a given string, such as "ERROR", occurs in new output, or when a successful compilation occurs by detecting another string.
+* In settings, AccessibleRunner can be set so that notification sound will be played whenever a given regular expression mmatches a new output line. This way, if AccessibleRunner is not in foreground, one can get notified when a given string, such as "ERROR", occurs in new output, or when a successful compilation occurs by detecting another string.
+* The command output is narrated via screen reader, with the possibility to narrate even when AccessibleRunner is in background.
 
 ## Keyboard shortcuts
 AccessibleRunner supports the following keyboard shortcuts.
@@ -25,8 +26,9 @@ AccessibleRunner is developed in Python. [Download the source files ZIP archive 
     python AccessibleRunner.py
 
 ## Dependancies
-The Python version of AccessibleRunner requires the [wxPython](https://www.wxpython.org), [psutil](https://pypi.org/project/psutil/) and [playsound](https://pypi.org/project/playsound/) Python modules, which can be installed using [PIP](https://pypi.org/project/pip/) like this:
+The Python version of AccessibleRunner requires the [wxPython](https://www.wxpython.org), [psutil](https://pypi.org/project/psutil/), [playsound](https://pypi.org/project/playsound/) and [accessible-output2](https://pypi.org/project/accessible-output2/)Python modules, which can be installed using [PIP](https://pypi.org/project/pip/) like this:
 
     pip install wxPython
     pip install psutil
     pip install playsound
+    pip install accessible-output2

@@ -1,5 +1,4 @@
 # TODO
-# * Is it possible to send narration message to screen reader?
 # * Add Find text in output textbox feature.
 
 import os
@@ -7,6 +6,7 @@ import sys
 import wx
 import re
 import psutil
+import accessible_output2.outputs.auto
 from subprocess import call, Popen, PIPE, STDOUT
 from threading import Thread
 from playsound import playsound
@@ -33,11 +33,17 @@ class AccessibleRunner:
   # Initializes the object.
   def __init__(self, config):
     self.config = config
+    self.active = True
     self.process = None
+    self.sr = accessible_output2.outputs.auto.Auto()
     
   # Sets the UI object for this runner.
   def setUI(self, ui):
     self.ui = ui
+    
+  # Sets the active state of the application to the given value.
+  def setActive(self, active):
+    self.active = active
     
   # Runs the given command in a new process starting in  the  given working directory . The "useShell" parameter indicates if the command should be executed through the shell.
   def runProcess(self, command, dir, useShell):
@@ -117,9 +123,9 @@ class AccessibleRunner:
     # Set the new directory choices
     self.ui.setDirChoices(dirs)
     
-  # Sets the given settings to the config object.
-  def setSettings(self, settings):
-    self.config.settings = settings
+  # Merges the given settings with the config object.
+  def mergeSettings(self, settings):
+    self.config.settings.update(settings)
     
   # Clears the command output.
   def clearOutput(self):
@@ -158,6 +164,10 @@ class AccessibleRunner:
     
     for line in iter(out.readline, b''):
       lineString = line.decode()
+      
+      # Output the line via screen reader if the main frame is active or if background output is turned on
+      if self.active or self.config.settings['srBgOutput']:
+        self.sr.output(lineString)
       
       # Play sound if success regex matches
       if settings['playSuccessSound']:

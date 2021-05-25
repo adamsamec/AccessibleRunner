@@ -11,6 +11,7 @@ class MainFrame(wx.Frame):
     self.config = config
     
     self.Bind(wx.EVT_CLOSE, self.onWindowClose)
+    self.Bind(wx.EVT_ACTIVATE, self.onWindowActivate)
     self.Bind(wx.EVT_CHAR_HOOK  , self.charHook)
     
     self.addWidgets()
@@ -23,6 +24,7 @@ class MainFrame(wx.Frame):
     self.panel = wx.Panel(self)    
     vbox = wx.BoxSizer(wx.VERTICAL)
     history = self.config.history
+    settings = self.config.settings
     
     # Command combobox
     commandHbox = wx.BoxSizer(wx.HORIZONTAL)
@@ -46,8 +48,15 @@ class MainFrame(wx.Frame):
     # Use shell checkbox
     useShellHbox = wx.BoxSizer(wx.HORIZONTAL)
     self.useShellCheckbox = wx.CheckBox(self.panel, label = 'Execute using shell', pos = (10, 10))
-    self.useShellCheckbox.SetValue(True)
+    self.useShellCheckbox.SetValue(settings['useShell'])
     useShellHbox.Add(self.useShellCheckbox, 1, wx.EXPAND | wx.ALIGN_LEFT | wx.ALL, 5)
+
+    # Screen reader output in background checkbox
+    bgOutputHbox = wx.BoxSizer(wx.HORIZONTAL)
+    self.bgOutputCheckbox = wx.CheckBox(self.panel, label = 'Screen reader output in background', pos = (10, 10))
+    self.bgOutputCheckbox.Bind(wx.EVT_CHECKBOX, self.onBgOutputCheckboxClick)
+    self.bgOutputCheckbox.SetValue(settings['srBgOutput'])
+    bgOutputHbox.Add(self.bgOutputCheckbox, 1, wx.EXPAND | wx.ALIGN_LEFT | wx.ALL, 5)
 
     runAndKillHbox = wx.BoxSizer(wx.HORIZONTAL)
 
@@ -107,6 +116,10 @@ class MainFrame(wx.Frame):
 
   # Cleans everything and closes the main window.
   def cleanAndClose(self):
+    settings = {
+      'useShell': self.useShellCheckbox.GetValue(),
+    }
+    self.runner.mergeSettings(settings)
     self.runner.clean()
     self.Destroy()
     
@@ -148,6 +161,11 @@ class MainFrame(wx.Frame):
   def onWindowClose(self, event):
     self.cleanAndClose()
     
+  # Handles  the window activate event.
+  def onWindowActivate(self, event):
+    self.runner.setActive(event.GetActive())
+    event.Skip()
+
   # Handles  the key press events no matter where the focus is.
   def charHook(self, event):
     key = event.GetKeyCode()
@@ -207,8 +225,16 @@ class MainFrame(wx.Frame):
     if dialog.ShowModal() == wx.ID_OK:
       path = dialog.GetPath()
       self.dirCombobox.SetValue(path)
+      self.dirCombobox.SetFocus()
     dialog.Destroy()
     
+  # Handles the screen reader output in background checkbox click.
+  def onBgOutputCheckboxClick(self, event):
+    settings = {
+      'srBgOutput': self.bgOutputCheckbox.GetValue(),
+    }
+    self.runner.mergeSettings(settings)
+
   # Handles the run button click.
   def onRunButtonClick(self, event):
     self.runProcess()
@@ -306,5 +332,5 @@ class SettingsDialog(wx.Dialog):
       'playErrorSound': self.playErrorCheckbox.GetValue(),
       'errorRegex': self.errorRegexTextbox.GetValue(),
     }
-    self.runner.setSettings(settings)
+    self.runner.mergeSettings(settings)
     self.Destroy()

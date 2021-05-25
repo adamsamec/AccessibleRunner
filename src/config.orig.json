@@ -4,6 +4,8 @@
     "dirs": []
   },
   "settings": {
+    "useShell": true,
+    "srBgOutput": false,
     "playSuccessSound": false,
     "successRegex": "",
     "playErrorSound": false,

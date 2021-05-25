@@ -1,5 +1,6 @@
 # TODO
 # * Is it possible to send narration message to screen reader?
+# * Add Find text in output textbox feature.
 
 import os
 import sys

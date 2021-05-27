@@ -1,11 +1,16 @@
 {
+  "version": "1.0",
   "history": {
     "commands": [],
-    "dirs": []
+    "dirs": [],
+    "findTexts": []
   },
   "settings": {
     "useShell": true,
     "srBgOutput": false,
+    "findText": "",
+    "findBackward": false,
+    "ignoreCase": true,
     "playSuccessSound": false,
     "successRegex": "",
     "playErrorSound": false,

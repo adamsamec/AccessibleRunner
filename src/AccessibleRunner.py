@@ -1,5 +1,5 @@
 # TODO
-# * Add Find text in output textbox feature.
+# * Test if wrapping and not found should interrupt the speach.
 
 import os
 import sys
@@ -19,16 +19,20 @@ ON_WINDOWS = os.name == 'nt'
 # Main application class.
 class AccessibleRunner:
 
-  # Maximum number of items in command history.
+  # Maximum number of items in commands history.
   COMMAND_HISTORY_LIMIT = 10
 
-  # Maximum number of items in working directory history.
+  # Maximum number of items in working directories history.
   DIR_HISTORY_LIMIT = 10
+  
+  # Maximum number of items in find texts history
+  FIND_TEXTS_HISTORY_LIMIT = 10
   
   # Paths to sounds directory and files
   SOUNDS_PATH = 'sounds/'
   SUCCESS_SOUND_PATH = SOUNDS_PATH + 'success.mp3'
   ERROR_SOUND_PATH = SOUNDS_PATH + 'error.mp3'
+  NOT_FOUND_SOUND_PATH = SOUNDS_PATH + 'Windows Background.wav'
 
   # Initializes the object.
   def __init__(self, config):
@@ -72,7 +76,7 @@ class AccessibleRunner:
     else:
     
       # Start fetching the process output in a new thread
-      thread = Thread(target=self.fetchOutput, args = (self.process.stdout, None))
+      thread = Thread(target = self.fetchOutput, args = (self.process.stdout, None))
       thread.daemon = True # Thread dies with the program
       thread.start()
     self.ui.setAsRunning()
@@ -123,7 +127,24 @@ class AccessibleRunner:
     # Set the new directory choices
     self.ui.setDirChoices(dirs)
     
-  # Merges the given settings with the config object.
+  # Adds the given find text to the  history.
+  def addToFindHistory(self, findText):
+    findTexts = self.config.history['findTexts']
+    
+    # If the find text already exists in the history, remove it
+    try:  
+      index = findTexts.index(findText)
+      findTexts.pop(index)
+    except:
+      pass
+      
+    # Add the find text to the begining of the history
+    findTexts.insert(0, findText)
+    
+    # Remove the find texts which exceed the history limit
+    findTexts = findTexts[:AccessibleRunner.FIND_TEXTS_HISTORY_LIMIT]
+
+  # Merges the given settings with the config settings dictionary.
   def mergeSettings(self, settings):
     self.config.settings.update(settings)
     
@@ -157,6 +178,30 @@ class AccessibleRunner:
       pass
     self.process = None
     self.ui.setAsNotRunning()
+    
+  # Plays the sound at the given path asynchronously.
+  def play(self, path):
+    thread = Thread(target = playsound, args = (path, None))
+    thread.daemon = True # Thread dies with the program
+    thread.start()
+  
+  # Plays the success sound.
+  def playSuccess(self):
+    self.play(AccessibleRunner.SUCCESS_SOUND_PATH)
+    
+  # Plays the error sound.
+  def playError(self):
+    self.play(AccessibleRunner.ERROR_SOUND_PATH)
+
+  # Plays the not found sound.
+  def playNotFound(self):
+    self.play(AccessibleRunner.NOT_FOUND_SOUND_PATH)
+    
+  # Outputs the given text via screen reader, optionally interrupting the current output.
+  def srOutput(self, text, interrupt = False):
+    # Output only if screen reader is running
+    if not self.sr.is_system_output():
+      self.sr.output(text, interrupt = interrupt)
       
   # Waits for the process output and continuously writes it to the command output. Depending on the current settings, plays success and error sounds if regular expression matches output line.
   def fetchOutput(self, out, arg):
@@ -167,19 +212,19 @@ class AccessibleRunner:
       
       # Output the line via screen reader if the main frame is active or if background output is turned on
       if self.active or self.config.settings['srBgOutput']:
-        self.sr.output(lineString)
+        self.srOutput(lineString)
       
       # Play sound if success regex matches
       if settings['playSuccessSound']:
         match = re.search(settings['successRegex'], lineString)
         if match is not None:
-          playsound(AccessibleRunner.SUCCESS_SOUND_PATH)
+          self.playSuccess()
         
       # Play sound if error regex matches
       if settings['playErrorSound']:
         match = re.search(settings['errorRegex'], lineString)
         if match is not None:
-          playsound(AccessibleRunner.ERROR_SOUND_PATH)
+          self.playError()
         
       # Append the line to the UI output
       self.ui.setOutput(lineString, True)
@@ -193,7 +238,7 @@ def main():
   app = wx.App()
   config = Config()
   runner = AccessibleRunner(config)
-  mainFrame = MainFrame(runner, config, title='AccessibleRunner')
+  mainFrame = MainFrame(runner, config, title = MainFrame.WINDOW_TITLE)
   runner.setUI(mainFrame)
   app.MainLoop()
 

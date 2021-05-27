@@ -1,10 +1,11 @@
 # AccessibleRunner
-AccessibleRunner is a simple Windows utility for running console commands with screen reader accessible command output. This utility has been created with the aim to allow easy text selection, copying and clearing for the textual output of the user provided command.
+AccessibleRunner is a Windows utility for running console commands with screen reader accessible command output. This utility has been created with the aim to allow easy text selection, searching, copying and clearing for the textual output of the user provided command.
 
 ## Features
 * Command and working directory history. History items can be choosed by pressing the Down arrow key when the command or working directory combobox is focused.
+* Find text in command output, with find history which can be browsed using the Down and Up arrow keys. The search may or not may be case sensitive.
 * In settings, AccessibleRunner can be set so that notification sound will be played whenever a given regular expression mmatches a new output line. This way, if AccessibleRunner is not in foreground, one can get notified when a given string, such as "ERROR", occurs in new output, or when a successful compilation occurs by detecting another string.
-* The command output is narrated via screen reader, with the possibility to narrate even when AccessibleRunner is in background.
+* If screen reader is running, the command output is sent to the screen reader, with the possibility to output even when AccessibleRunner is in background. The output is both via speech and braille.
 
 ## Keyboard shortcuts
 AccessibleRunner supports the following keyboard shortcuts.
@@ -12,6 +13,7 @@ AccessibleRunner supports the following keyboard shortcuts.
 * Control + Enter: Runs the command and focuses the output textbox.
 * Control + K: Kills the running process.
 * Control + L: Focuses the command textbox.
+* Control + O: Focuses the output textbox.
 * Control + D: Clears the output textbox.
 * Control + Shift + C: Copies the output to clipboard.
 * Control + Q: Quits the application.

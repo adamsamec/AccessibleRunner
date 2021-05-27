@@ -1,10 +1,16 @@
 import os
 import wx
+import re
+
+import util
 
 # Main frame class.
 class MainFrame(wx.Frame):
 
-  # Initializes the object by linking it with the given AccessibilityRunner and Config objects, binds the event handlers, and creates the whole GUI.
+  WINDOW_TITLE_SEPARATOR = ' | '
+  WINDOW_TITLE = 'AccessibleRunner'
+
+  # Initializes the object by linking it with the given AccessibilityRunner and Config objects, binding the event handlers, and creating the GUI.
   def __init__(self, runner, config, title, parent = None):
     super(MainFrame, self).__init__(parent, title = title)
     self.runner = runner
@@ -98,6 +104,7 @@ class MainFrame(wx.Frame):
     vbox.Add(commandHbox)
     vbox.Add(dirHbox)
     vbox.Add(useShellHbox)
+    vbox.Add(bgOutputHbox)
     vbox.Add(runAndKillHbox)
     vbox.Add(outputHbox)
     vbox.Add(clearCopySettingsHbox)
@@ -106,11 +113,13 @@ class MainFrame(wx.Frame):
     
   # Sets the GUI state as running.
   def setAsRunning(self):
+    self.SetTitle('{}{}{}'.format(self.commandCombobox.GetValue().strip(), MainFrame.WINDOW_TITLE_SEPARATOR, MainFrame.WINDOW_TITLE))
     self.runButton.Disable()
     self.killButton.Enable()
 
   # Sets the GUI state as not running.
   def setAsNotRunning(self):
+    self.SetTitle(MainFrame.WINDOW_TITLE)
     self.killButton.Disable()
     self.runButton.Enable()
 
@@ -157,6 +166,63 @@ class MainFrame(wx.Frame):
   def getOutput(self):
     return self.outputTextbox.GetValue()
     
+  # Moves the cursor of the output textbox to the given position and outputs the line at that position in the given text via screen reader.
+  def moveCursorAndOutputLine(self, text, position):
+    self.outputTextbox.SetInsertionPoint(position)
+    line = util.getLine(text, position)
+    self.runner.srOutput(line)
+      
+  # Finds the next occurance of the  text stored in the temporary settings in the output textbox, moves the insertion point to that occurance and outputs the found word via screen reader.
+  def findText(self, backward = False):
+    settings = self.config.settings
+    findText = settings['findText']
+    if len(findText) == 0:
+      return
+    
+    # Replace the \n line endings in the output text with the \r\n (Windows) ones
+    origCaseOutputText = self.outputTextbox.GetValue().replace('\n', '\r\n')
+    
+    # Determine whether find should be case sensitive
+    if settings['ignoreCase']:
+      findText = findText.lower()
+      outputText = origCaseOutputText.lower()
+    else:
+      outputText = origCaseOutputText
+    
+    cursorPosition = self.outputTextbox.GetInsertionPoint()
+    if not backward:
+      # Find forward, i.e., find the first text occurrance in the output text substring starting at the cursor position + 1 until the end
+      findStartPosition = cursorPosition + 1
+      foundPosition = outputText.find(findText, findStartPosition)
+      if foundPosition >= 0:
+        self.moveCursorAndOutputLine(origCaseOutputText, foundPosition)
+      else:
+        self.runner.playNotFound()
+        
+        # Wrap the find to the top, i.e., find the first text occurance again, but now starting at the begining of the output text and ending at the foundPosition
+        foundPosition = outputText.find(findText, 0, foundPosition)
+        if foundPosition >= 0:
+          self.runner.srOutput('Wrapping to top')
+          self.moveCursorAndOutputLine(origCaseOutputText, foundPosition)
+        else:
+          self.runner.srOutput('Search string not found')
+    else:
+      # Find backward, i.e., find the last text occurrance in the output text substring starting at the begining until the cursor position - 1
+      findEndPosition = cursorPosition - 1
+      foundPosition = outputText.rfind(findText, 0, findEndPosition)
+      if foundPosition >= 0:
+        self.moveCursorAndOutputLine(origCaseOutputText, foundPosition)
+      else:
+        self.runner.playNotFound()
+        
+        # Wrap the find to the bottom, i.e., find the last text occurrance again, but now starting at the previously found position and ending at the end of the output text
+        foundPosition = outputText.rfind(findText, 0)
+        if foundPosition >= 0:
+          self.runner.srOutput('Wrapping to top')
+          self.moveCursorAndOutputLine(origCaseOutputText, foundPosition)
+        else:
+          self.runner.srOutput('Search string not found')
+    
   # Handles  the window close event.
   def onWindowClose(self, event):
     self.cleanAndClose()
@@ -166,14 +232,16 @@ class MainFrame(wx.Frame):
     self.runner.setActive(event.GetActive())
     event.Skip()
 
-  # Handles  the key press events no matter where the focus is.
+  # Handles  the key press events for the whole frame.
   def charHook(self, event):
     key = event.GetKeyCode()
     modifiers = event.GetModifiers()
     
-    # Check if only Control or Control + Shift are pressed
+    # Check if no modifiers, only Control, or only Control + Shift are pressed
     # On macOS the control key is actually the Cmd key
+    noModifiers = not event.HasAnyModifiers()
     onlyControlDown = modifiers == wx.MOD_CONTROL
+    onlyShiftDown = modifiers == (wx.MOD_SHIFT)
     onlyControlAndShiftDown = modifiers == (wx.MOD_CONTROL | wx.MOD_SHIFT)
     
     # Control + Enter
@@ -190,29 +258,36 @@ class MainFrame(wx.Frame):
     elif (key == ord('L')) and onlyControlDown:
       self.commandCombobox.SetFocus()
 
+    # Control + O
+    elif (key == ord('O')) and onlyControlDown:
+      self.outputTextbox.SetFocus()
 
-    # Control/Cmd + Q
+    # Control + F
+    elif (key == ord('F')) and onlyControlDown:
+      self.showFindDialog()
+      
+    # F3
+    elif (key == wx.WXK_F3) and noModifiers:
+      self.findText()
+      
+    # Shift + F3
+    elif (key == wx.WXK_F3) and onlyShiftDown:
+      self.findText(True)
+
+    # Control + Q
     elif (key == ord('Q')) and onlyControlDown:
       self.cleanAndClose()
       
-    # Control/Cmd + Shift + C
+    # Control + Shift + C
     elif (key == ord('C')) and onlyControlAndShiftDown:
       self.runner.copyOutput()
       
-    # Control/Cmd + D
+    # Control + D
     elif (key == ord('D')) and onlyControlDown:
       self.runner.clearOutput()
     
     else:
       event.Skip()
-    
-  # Handles  the key down event if the focus is on the command textbox.
-  def charHookAtCommand(self, event):
-    key = event.GetKeyCode()
-    hasAnyModifiers = event.HasAnyModifiers()
-    print(    'test')
-    print(hasAnyModifiers)
-    print(key)
     
   # Handles the choose directory button click.
   def onChooseDirButtonClick(self, event):
@@ -245,7 +320,7 @@ class MainFrame(wx.Frame):
     
   # Handles the settings button click.
   def onSettingsButtonClick(self, event):
-    self.settingsDialog = SettingsDialog(self.runner, self.config, title = 'Settings | AccessibleRunner', parent = self)
+    SettingsDialog(self.runner, self.config, title = 'Settings{}{}'.format(MainFrame.WINDOW_TITLE_SEPARATOR, MainFrame.WINDOW_TITLE), parent = self)
 
   # Handles the clear button click.
   def onClearButtonClick(self, event):
@@ -254,15 +329,21 @@ class MainFrame(wx.Frame):
   # Handles the copy button click.
   def onCopyButtonClick(self, event):
     self.runner.copyOutput()
+    
+  # Shows the find text dialog
+  def showFindDialog(self):
+    FindDialog(self.runner, self.config, title = 'Find text', parent = self)
 
 # Settings dialog class.
 class SettingsDialog(wx.Dialog):
 
-  # Initializes the object by linking it with the given AccessibilityRunner and Config objects, binds the event handlers, and creates the whole GUI.
+  # Initializes the object by linking it with the given AccessibilityRunner and Config objects, binding the event handlers, and creating the GUI.
   def __init__(self, runner, config, title, parent = None):
     super(SettingsDialog, self).__init__(parent = parent, title = title)
     self.runner = runner
     self.config = config
+    
+    self.Bind(wx.EVT_CHAR_HOOK  , self.charHook)
     
     self.addWidgets()
     self.Centre()
@@ -310,6 +391,7 @@ class SettingsDialog(wx.Dialog):
 
     # Save and close button
     self.closeButton = wx.Button(self.panel, label = 'Save and close')
+    self.closeButton.SetDefault()
     self.closeButton.Bind(wx.EVT_BUTTON, self.onCloseButtonClick)
     cancelAndCloseHbox.Add(self.closeButton, 1, wx.EXPAND | wx.ALIGN_LEFT | wx.ALL, 5)
     
@@ -320,9 +402,27 @@ class SettingsDialog(wx.Dialog):
     vbox.Add(cancelAndCloseHbox)
     self.panel.SetSizer(vbox)
     
+  # Closes the dialog without any changes.
+  def close(self):
+    self.Destroy()
+    
+  # Handles  the key press events for the whole dialog.
+  def charHook(self, event):
+    key = event.GetKeyCode()
+    modifiers = event.GetModifiers()
+    
+    # Check if no modifiers are pressed
+    noModifiers = not event.HasAnyModifiers()
+    
+    # Escape
+    if key == wx.WXK_ESCAPE:
+      self.close()
+    else:
+      event.Skip()
+
   # Handles the cancel button click.
   def onCancelButtonClick(self, event):
-    self.Destroy()
+    self.close()
 
   # Handles the save and close button click.
   def onCloseButtonClick(self, event):
@@ -334,3 +434,114 @@ class SettingsDialog(wx.Dialog):
     }
     self.runner.mergeSettings(settings)
     self.Destroy()
+
+# Find text dialog class.
+class FindDialog(wx.Dialog):
+
+  # Initializes the object by linking it with the given AccessibilityRunner and Config objects, binding the event handlers, and creating the GUI.
+  def __init__(self, runner, config, title, parent = None):
+    super(FindDialog, self).__init__(parent = parent, title = title)
+    self.parent = parent
+    self.runner = runner
+    self.config = config
+    
+    self.Bind(wx.EVT_CHAR_HOOK  , self.charHook)
+    
+    self.addWidgets()
+    self.Centre()
+    self.ShowModal()
+    self.Fit()
+
+  # Adds all the initial widgets to this frame.
+  def addWidgets(self):
+    self.panel = wx.Panel(self)    
+    vbox = wx.BoxSizer(wx.VERTICAL)
+    history = self.config.history
+    settings = self.config.settings
+    
+    # Find text combobox
+    findComboboxHbox = wx.BoxSizer(wx.HORIZONTAL)
+    findLabel = wx.StaticText(self.panel, -1, 'Find what') 
+    findComboboxHbox.Add(findLabel, 1, wx.EXPAND | wx.ALIGN_LEFT | wx.ALL, 5)
+    self.findCombobox = wx.ComboBox(self.panel, choices = history['findTexts'], value = settings['findText'])
+    findComboboxHbox.Add(self.findCombobox, 1, wx.EXPAND | wx.ALIGN_LEFT | wx.ALL, 5)
+    
+    # Find backward checkbox
+    backwardHbox = wx.BoxSizer(wx.HORIZONTAL)
+    self.backwardCheckbox = wx.CheckBox(self.panel, label = 'Backward direction', pos = (10, 10))
+    self.backwardCheckbox.SetValue(settings['findBackward'])
+    self.backwardCheckbox.Bind(wx.EVT_CHECKBOX, self.onBackwardCheckboxClick)
+    backwardHbox.Add(self.backwardCheckbox, 1, wx.EXPAND | wx.ALIGN_LEFT | wx.ALL, 5)
+
+    # Ignore case checkbox
+    ignoreCaseHbox = wx.BoxSizer(wx.HORIZONTAL)
+    self.ignoreCaseCheckbox = wx.CheckBox(self.panel, label = 'Ignore case', pos = (10, 10))
+    self.ignoreCaseCheckbox.SetValue(settings['ignoreCase'])
+    self.ignoreCaseCheckbox.Bind(wx.EVT_CHECKBOX, self.onIgnoreCaseCheckboxClick)
+    ignoreCaseHbox.Add(self.ignoreCaseCheckbox, 1, wx.EXPAND | wx.ALIGN_LEFT | wx.ALL, 5)
+
+    # Find next button
+    findButtonHbox = wx.BoxSizer(wx.HORIZONTAL)
+    self.findButton = wx.Button(self.panel, label = 'Find next')
+    self.findButton.SetDefault()
+    self.findButton.Bind(wx.EVT_BUTTON, self.onFindButtonClick)
+    findButtonHbox.Add(self.findButton, 1, wx.EXPAND | wx.ALIGN_LEFT | wx.ALL, 5)
+    
+    vbox.Add(findComboboxHbox)
+    vbox.Add(backwardHbox)
+    vbox.Add(ignoreCaseHbox)
+    vbox.Add(findButtonHbox)
+
+    self.panel.SetSizer(vbox)
+    
+  # Closes the dialog without any changes.
+  def close(self):
+    self.Destroy()
+    
+  # Temporary saves the find dialog combobox text and backward checkbox state, finds the next occurance of the text in the output textbox and moves the insertion point to that occurance. Finally closes the dialog.
+  def findTextAndClose(self):
+    settings = {
+      'findText': self.findCombobox.GetValue(),
+      'findBackward': self.backwardCheckbox.GetValue(),
+    }
+    self.runner.mergeSettings(settings)
+    
+    self.runner.addToFindHistory(settings['findText'])
+    self.parent.findText(settings['findBackward'])
+    self.close()
+    
+  # Handles  the key press events for the whole dialog.
+  def charHook(self, event):
+    key = event.GetKeyCode()
+    modifiers = event.GetModifiers()
+    
+    # Check if no modifiers are pressed
+    noModifiers = not event.HasAnyModifiers()
+    
+    # Escape
+    if key == wx.WXK_ESCAPE:
+      self.close()
+      
+    # Enter
+    elif key == wx.WXK_RETURN:
+      self.findTextAndClose()
+    else:
+      event.Skip()
+
+  # Handles the find backward checkbox click.
+  def onBackwardCheckboxClick(self, event):
+    settings = {
+      'findBackward': self.backwardCheckbox.GetValue(),
+    }
+    self.runner.mergeSettings(settings)
+
+  # Handles the ignore case checkbox click.
+  def onIgnoreCaseCheckboxClick(self, event):
+    settings = {
+      'ignoreCase': self.ignoreCaseCheckbox.GetValue(),
+    }
+    self.runner.mergeSettings(settings)
+
+  # Handles the find text button click.
+  def onFindButtonClick(self, event):
+    self.findTextAndClose()

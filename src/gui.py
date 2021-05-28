@@ -202,7 +202,7 @@ class MainFrame(wx.Frame):
         # Wrap the find to the top, i.e., find the first text occurance again, but now starting at the begining of the output text and ending at the foundPosition
         foundPosition = outputText.find(findText, 0, foundPosition)
         if foundPosition >= 0:
-          self.runner.srOutput('Wrapping to top')
+          self.runner.srOutput('Wrapping to top', True)
           self.moveCursorAndOutputLine(origCaseOutputText, foundPosition)
         else:
           self.runner.srOutput('Search string not found')
@@ -218,10 +218,10 @@ class MainFrame(wx.Frame):
         # Wrap the find to the bottom, i.e., find the last text occurrance again, but now starting at the previously found position and ending at the end of the output text
         foundPosition = outputText.rfind(findText, 0)
         if foundPosition >= 0:
-          self.runner.srOutput('Wrapping to top')
+          self.runner.srOutput('Wrapping to bottom', True)
           self.moveCursorAndOutputLine(origCaseOutputText, foundPosition)
         else:
-          self.runner.srOutput('Search string not found')
+          self.runner.srOutput('Search string not found', True)
     
   # Handles  the window close event.
   def onWindowClose(self, event):
@@ -251,7 +251,6 @@ class MainFrame(wx.Frame):
       
     # Control + K
     elif (key == ord('K')) and onlyControlDown:
-      self.commandCombobox.SetFocus()
       self.runner.killProcessTree()
 
     # Control + L

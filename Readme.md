@@ -3,7 +3,7 @@ AccessibleRunner is a Windows utility for running console commands with screen r
 
 ## Features
 * Command and working directory history. Up to ten history items can be chosen by pressing the Down arrow key when the command or working directory combobox is focused.
-* Find text in command output. Press Control + F to show the search dialog, access the search history by pressing the Down arrow key when the find text combobox is focused, hit Enter to find the next occurance. Successive occurances can be found using the F3 key, press Shift + F3 for searching backward. The search may or not may be case sensitive. 
+* Find text in command output. Press Control + F to show the search dialog, access the search history by pressing the Down arrow key when the find text combobox is focused, hit Enter to find the next occurrence. Successive occurrences can be found using the F3 key, press Shift + F3 for searching backward. The search may or not may be case sensitive. 
 * In settings, AccessibleRunner can be configured so that notification sound will be played whenever a given regular expression matches a text in the output line of the currently running command. This way, if AccessibleRunner is in background, one can be notified when a given string, such as "ERROR", occurs in new output, or when a successful compilation occurs by detecting another given string.
 * If screen reader is running, the command output is sent to the screen reader, with the possibility to output even when AccessibleRunner is in background. The output is both via speech and braille.
 

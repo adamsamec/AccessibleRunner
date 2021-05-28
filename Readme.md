@@ -30,7 +30,7 @@ AccessibleRunner is developed in Python. [Download the source files ZIP archive 
 
     python AccessibleRunner.py
 
-#### Dependancies
+## Source file dependancies
 The Python source files of AccessibleRunner require the [wxPython](https://www.wxpython.org), [psutil](https://pypi.org/project/psutil/), [playsound](https://pypi.org/project/playsound/) and [accessible-output2](https://pypi.org/project/accessible-output2/)Python modules, which can be installed using [PIP](https://pypi.org/project/pip/) like this:
 
     pip install wxPython

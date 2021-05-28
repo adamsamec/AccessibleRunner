@@ -1,5 +1,5 @@
 # TODO
-# * Test if wrapping and not found should interrupt the speach.
+# * Formatting log outputs with the help of regular expressions.
 
 import os
 import sys

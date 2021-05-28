@@ -1,71 +1,66 @@
 import os
 import json
-from shutil import copyfile
 
 # Class for loading and saving application configuration.
 class Config:
 
-  # Configuration file version.
-  VERSION = '1.0'
+  # Path to the config file with the default configuration values.
+  DEFAULT_CONFIG_PATH = 'config.default.json'
   
-  # Paths to the original and actually used config files.
-  ORIG_CONFIG_PATH = 'config.orig.json'
-  CONFIG_PATH = os.environ['APPDATA'] + '\\AccessibleRunner\\config.json'
+  # Path to the config file in the standard writable application data directory (AppData on Windows with the actually used configuration values.
+  APPDATA_CONFIG_PATH = os.environ['APPDATA'] + '\\AccessibleRunner\\config.json'
   
-  # Initializes the object by loading the configuration from the config file. The used config file is copied from the original to a writable standard application directory if not already exists there, or if is corrupted or older version.
+  # Initializes the object by loading the configuration from file. If a configuration value exists in the config file at the standard writable application data directory (AppData on Windows), it is used, otherwise the default configuration value is loaded from the default config file.
   def __init__(self):
-    isConfigValid = False
-    if os.path.exists(Config.CONFIG_PATH):
-      # The config file already exists, verify if it is a valid JSON file and has the correct version
-      path = Config.CONFIG_PATH
-      try:
-        file = open(path, encoding='utf-8')
-        content = ''
-        
-        # Load the file line by line
-        while True:
-          line = file.readline()
-          content += line
-          if not line:
-            break
+    # Load the default config file
+    config = self.loadFile(Config.DEFAULT_CONFIG_PATH)
+     
+    if os.path.exists(Config.APPDATA_CONFIG_PATH):
+ # The application data config file exists, override the loaded default configuration values by the configuration values found in this application data config file
+      appDataConfig = self.loadFile(Config.APPDATA_CONFIG_PATH)
+      self.override('history', appDataConfig, config)
+      self.override('settings', appDataConfig, config)
+    else:
+      # The application data  config file does not exist, so check if AccessibleRunner's directory exists in the standard writable application data directory and create it if not
+      directory = os.path.dirname(Config.APPDATA_CONFIG_PATH)
+      if not os.path.isdir(directory):
+        os.makedirs(directory)
       
-        # Parse the configuration file and verify its version
-        config = json.loads(content)
-        if config['version'] == Config.VERSION:
-          isConfigValid = True
-      except:
-        pass
-
-    if not isConfigValid:
-      # The config file does not already exist or is not valid, so copy the original config file to a  writable standard application  directory 
-      dir = os.path.dirname(Config.CONFIG_PATH)
-      if not os.path.isdir(dir):
-        os.makedirs(dir)
-      copyfile(os.path.abspath(Config.ORIG_CONFIG_PATH), Config.CONFIG_PATH)
-    
-      # Open and load the copied configuration file line by line
-      path = Config.CONFIG_PATH
-      with open(path, encoding='utf-8') as file:
-        content = ''
-        while True:
-          line = file.readline()
-          content += line
-          if not line:
-            break
-
-      # Parse the configuration file
-      config = json.loads(content)
-      
-    # Save the parsed config as a dictionary
+    # Save the determined configuration to this object properties
     self.history = config['history']
     self.settings = config['settings']
-    
-  # Saves the current configuration to the config file.
+
+  # Loads and parses the JSON file at the given path and returns the loaded dictionary.
+  def loadFile(self, path):
+    with open(path, encoding='utf-8') as file:
+      content = ''
+      
+      # Load file line by line
+      while True:
+        line = file.readline()
+        content += line
+        if not line:
+          break
+
+    # Parse the file content as JSON
+    config = json.loads(content)
+    return config
+
+  # Overrides the target's dictionary values under the given category key with the values from the source dictionary.
+  def override(self, category, source, target):
+    if category in source:
+      for key in target[category]:
+      
+        # Check if the target key exists in the source and its value has the same type
+        if (key in source[category]) and (type(source[category][key]) == type(target[category][key])):
+          
+          # Override the target's value with the source's one
+          target[category][key] = source[category][key]
+
+  # Saves the current internally stored configuration to the application data config file.
   def saveToFile(self):
-    path = Config.CONFIG_PATH
-    with open(path, 'w', encoding='utf-8') as file:
+    with open(Config.APPDATA_CONFIG_PATH, 'w', encoding='utf-8') as file:
       config = {
-        'version': Config.VERSION,
         'history': self.history,
         'settings': self.settings,
       }

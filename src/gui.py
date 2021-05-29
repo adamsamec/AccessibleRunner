@@ -359,6 +359,7 @@ class SettingsDialog(wx.Dialog):
     playSuccessHbox = wx.BoxSizer(wx.HORIZONTAL)
     self.playSuccessCheckbox = wx.CheckBox(self.panel, label = 'Play success sound when regular expression matches', pos = (10, 10))
     self.playSuccessCheckbox.SetValue(settings['playSuccessSound'])
+    self.playSuccessCheckbox.Bind(wx.EVT_CHECKBOX, self.onPlaySuccessCheckboxClick)
     playSuccessHbox.Add(self.playSuccessCheckbox, 1, wx.EXPAND | wx.ALIGN_LEFT | wx.ALL, 5)
 
     # Success regex textbox
@@ -366,12 +367,15 @@ class SettingsDialog(wx.Dialog):
     successRegexLabel = wx.StaticText(self.panel, -1, 'Success regular expression') 
     successRegexHbox.Add(successRegexLabel, 1, wx.EXPAND | wx.ALIGN_LEFT | wx.ALL, 5)
     self.successRegexTextbox = wx.TextCtrl(self.panel, value = settings['successRegex'])
+    if not settings['playSuccessSound']:
+      self.successRegexTextbox.Disable()
     successRegexHbox.Add(self.successRegexTextbox, 1, wx.EXPAND | wx.ALIGN_LEFT | wx.ALL, 5)
     
     # Play error sound checkbox
     playErrorHbox = wx.BoxSizer(wx.HORIZONTAL)
     self.playErrorCheckbox = wx.CheckBox(self.panel, label = 'Play error sound when regular expression matches', pos = (10, 10))
     self.playErrorCheckbox.SetValue(settings['playErrorSound'])
+    self.playErrorCheckbox.Bind(wx.EVT_CHECKBOX, self.onPlayErrorCheckboxClick)
     playErrorHbox.Add(self.playErrorCheckbox, 1, wx.EXPAND | wx.ALIGN_LEFT | wx.ALL, 5)
 
     # Error regex textbox
@@ -379,6 +383,8 @@ class SettingsDialog(wx.Dialog):
     errorRegexLabel = wx.StaticText(self.panel, -1, 'Error regular expression') 
     errorRegexHbox.Add(errorRegexLabel, 1, wx.EXPAND | wx.ALIGN_LEFT | wx.ALL, 5)
     self.errorRegexTextbox = wx.TextCtrl(self.panel, value = settings['errorRegex'])
+    if not settings['playErrorSound']:
+      self.errorRegexTextbox.Disable()
     errorRegexHbox.Add(self.errorRegexTextbox, 1, wx.EXPAND | wx.ALIGN_LEFT | wx.ALL, 5)
 
     cancelAndCloseHbox = wx.BoxSizer(wx.HORIZONTAL)
@@ -418,6 +424,20 @@ class SettingsDialog(wx.Dialog):
       self.close()
     else:
       event.Skip()
+
+  # Handles the play success sound checkbox click.
+  def onPlaySuccessCheckboxClick(self, event):
+    if self.playSuccessCheckbox.GetValue():
+      self.successRegexTextbox.Enable()
+    else:
+      self.successRegexTextbox.Disable()
+
+  # Handles the play error sound checkbox click.
+  def onPlayErrorCheckboxClick(self, event):
+    if self.playErrorCheckbox.GetValue():
+      self.errorRegexTextbox.Enable()
+    else:
+      self.errorRegexTextbox.Disable()
 
   # Handles the cancel button click.
   def onCancelButtonClick(self, event):

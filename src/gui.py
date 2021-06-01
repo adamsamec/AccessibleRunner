@@ -40,16 +40,16 @@ class MainFrame(wx.Frame):
     commandHbox.Add(self.commandCombobox, 1, wx.EXPAND | wx.ALIGN_LEFT | wx.ALL, 5)
     
     # Working directory combobox
-    dirHbox = wx.BoxSizer(wx.HORIZONTAL)
-    dirLabel = wx.StaticText(self.panel, -1, 'Working directory')
-    dirHbox.Add(dirLabel, 1, wx.EXPAND | wx.ALIGN_LEFT | wx.ALL, 5)
-    self.dirCombobox = wx.ComboBox(self.panel, choices = history['dirs'])
-    dirHbox.Add(self.dirCombobox, 1, wx.EXPAND | wx.ALIGN_LEFT | wx.ALL, 5)
+    directoryHbox = wx.BoxSizer(wx.HORIZONTAL)
+    directoryLabel = wx.StaticText(self.panel, -1, 'Working directory')
+    directoryHbox.Add(directoryLabel, 1, wx.EXPAND | wx.ALIGN_LEFT | wx.ALL, 5)
+    self.directoryCombobox = wx.ComboBox(self.panel, choices = history['directories'])
+    directoryHbox.Add(self.directoryCombobox, 1, wx.EXPAND | wx.ALIGN_LEFT | wx.ALL, 5)
     
     # Working directory choose button
-    self.chooseDirButton = wx.Button(self.panel, label = 'Chooce directory')
-    self.chooseDirButton.Bind(wx.EVT_BUTTON, self.onChooseDirButtonClick)
-    dirHbox.Add(self.chooseDirButton, 1, wx.EXPAND | wx.ALIGN_LEFT | wx.ALL, 5)
+    self.chooseDirectoryButton = wx.Button(self.panel, label = 'Chooce directory')
+    self.chooseDirectoryButton.Bind(wx.EVT_BUTTON, self.onChooseDirectoryButtonClick)
+    directoryHbox.Add(self.chooseDirectoryButton, 1, wx.EXPAND | wx.ALIGN_LEFT | wx.ALL, 5)
     
     # Use shell checkbox
     useShellHbox = wx.BoxSizer(wx.HORIZONTAL)
@@ -102,7 +102,7 @@ class MainFrame(wx.Frame):
     clearCopySettingsHbox.Add(self.settingsButton, 1, wx.EXPAND | wx.ALIGN_LEFT | wx.ALL, 5)
 
     vbox.Add(commandHbox)
-    vbox.Add(dirHbox)
+    vbox.Add(directoryHbox)
     vbox.Add(useShellHbox)
     vbox.Add(bgOutputHbox)
     vbox.Add(runAndKillHbox)
@@ -135,9 +135,9 @@ class MainFrame(wx.Frame):
   # Runs the process using the values of the relevant textboxes.
   def runProcess(self):
     command = self.commandCombobox.GetValue()
-    dir = self.dirCombobox.GetValue()
+    directory = self.directoryCombobox.GetValue()
     useShell = self.useShellCheckbox.GetValue()
-    self.runner.runProcess(command, dir, useShell)
+    self.runner.runProcess(command, directory, useShell)
     
   # Sets the given choices to the given combobox.
   def setChoices(self, combobox, choices):
@@ -152,8 +152,8 @@ class MainFrame(wx.Frame):
     self.setChoices(self.commandCombobox, choices)
 
   # Sets the given choices to the directory combobox.
-  def setDirChoices(self, choices):
-    self.setChoices(self.dirCombobox, choices)
+  def setDirectoryChoices(self, choices):
+    self.setChoices(self.directoryCombobox, choices)
 
   # Sets or appends the given text to the command output textbox.
   def setOutput(self, text, append = False):
@@ -289,17 +289,17 @@ class MainFrame(wx.Frame):
       event.Skip()
     
   # Handles the choose directory button click.
-  def onChooseDirButtonClick(self, event):
+  def onChooseDirectoryButtonClick(self, event):
     # Determine the default path from the working directory combobox
-    path = self.dirCombobox.GetValue()
+    path = self.directoryCombobox.GetValue()
     path = path if os.path.isdir(path) else ''
     
     # Create and show the directory chooser dialog
     dialog = wx.DirDialog(self, message = 'Choose a working directory', defaultPath = path)
     if dialog.ShowModal() == wx.ID_OK:
       path = dialog.GetPath()
-      self.dirCombobox.SetValue(path)
-      self.dirCombobox.SetFocus()
+      self.directoryCombobox.SetValue(path)
+      self.directoryCombobox.SetFocus()
     dialog.Destroy()
     
   # Handles the screen reader output in background checkbox click.
@@ -349,18 +349,19 @@ class SettingsDialog(wx.Dialog):
     self.ShowModal()
     self.Fit()
 
-  # Adds all the initial widgets to this frame.
+  # Adds all the initial widgets to this dialog.
   def addWidgets(self):
     self.panel = wx.Panel(self)    
     vbox = wx.BoxSizer(wx.VERTICAL)
     settings = self.config.settings
+    history = self.config.history
     
     # Play success sound checkbox
-    playSuccessHbox = wx.BoxSizer(wx.HORIZONTAL)
+    playSuccessCheckboxHbox = wx.BoxSizer(wx.HORIZONTAL)
     self.playSuccessCheckbox = wx.CheckBox(self.panel, label = 'Play success sound when regular expression matches', pos = (10, 10))
     self.playSuccessCheckbox.SetValue(settings['playSuccessSound'])
     self.playSuccessCheckbox.Bind(wx.EVT_CHECKBOX, self.onPlaySuccessCheckboxClick)
-    playSuccessHbox.Add(self.playSuccessCheckbox, 1, wx.EXPAND | wx.ALIGN_LEFT | wx.ALL, 5)
+    playSuccessCheckboxHbox.Add(self.playSuccessCheckbox, 1, wx.EXPAND | wx.ALIGN_LEFT | wx.ALL, 5)
 
     # Success regex textbox
     successRegexHbox = wx.BoxSizer(wx.HORIZONTAL)
@@ -372,11 +373,11 @@ class SettingsDialog(wx.Dialog):
     successRegexHbox.Add(self.successRegexTextbox, 1, wx.EXPAND | wx.ALIGN_LEFT | wx.ALL, 5)
     
     # Play error sound checkbox
-    playErrorHbox = wx.BoxSizer(wx.HORIZONTAL)
+    playErrorCheckboxHbox = wx.BoxSizer(wx.HORIZONTAL)
     self.playErrorCheckbox = wx.CheckBox(self.panel, label = 'Play error sound when regular expression matches', pos = (10, 10))
     self.playErrorCheckbox.SetValue(settings['playErrorSound'])
     self.playErrorCheckbox.Bind(wx.EVT_CHECKBOX, self.onPlayErrorCheckboxClick)
-    playErrorHbox.Add(self.playErrorCheckbox, 1, wx.EXPAND | wx.ALIGN_LEFT | wx.ALL, 5)
+    playErrorCheckboxHbox.Add(self.playErrorCheckbox, 1, wx.EXPAND | wx.ALIGN_LEFT | wx.ALL, 5)
 
     # Error regex textbox
     errorRegexHbox = wx.BoxSizer(wx.HORIZONTAL)
@@ -386,6 +387,31 @@ class SettingsDialog(wx.Dialog):
     if not settings['playErrorSound']:
       self.errorRegexTextbox.Disable()
     errorRegexHbox.Add(self.errorRegexTextbox, 1, wx.EXPAND | wx.ALIGN_LEFT | wx.ALL, 5)
+
+    # Enable line substitution checkbox
+    lineSubstitutionCheckboxHbox = wx.BoxSizer(wx.HORIZONTAL)
+    self.lineSubstitutionCheckbox = wx.CheckBox(self.panel, label = 'Enable line substitution', pos = (10, 10))
+    self.lineSubstitutionCheckbox.SetValue(settings['lineSubstitution'])
+    self.lineSubstitutionCheckbox.Bind(wx.EVT_CHECKBOX, self.onLineSubstitutionCheckboxClick)
+    lineSubstitutionCheckboxHbox.Add(self.lineSubstitutionCheckbox, 1, wx.EXPAND | wx.ALIGN_LEFT | wx.ALL, 5)
+
+    # Line substitution regular expression combobox
+    substitutionRegexHbox = wx.BoxSizer(wx.HORIZONTAL)
+    substitutionRegexLabel = wx.StaticText(self.panel, -1, 'Line substitution regular expression') 
+    substitutionRegexHbox.Add(substitutionRegexLabel, 1, wx.EXPAND | wx.ALIGN_LEFT | wx.ALL, 5)
+    self.substitutionRegexCombobox = wx.ComboBox(self.panel, value = settings['substitutionRegex'], choices = history['substitutionRegexes'])
+    if not settings['lineSubstitution']:
+      self.substitutionRegexCombobox.Disable()
+    substitutionRegexHbox.Add(self.substitutionRegexCombobox, 1, wx.EXPAND | wx.ALIGN_LEFT | wx.ALL, 5)
+
+    # Line substitution replacement combobox
+    substitutionReplacementHbox = wx.BoxSizer(wx.HORIZONTAL)
+    substitutionReplacementLabel = wx.StaticText(self.panel, -1, 'Line substitution replacement (use \\1, \\2 etc. for back-references)') 
+    substitutionReplacementHbox.Add(substitutionReplacementLabel, 1, wx.EXPAND | wx.ALIGN_LEFT | wx.ALL, 5)
+    self.substitutionReplacementCombobox = wx.ComboBox(self.panel, value = settings['substitutionReplacement'], choices = history['substitutionReplacements'])
+    if not settings['lineSubstitution']:
+      self.substitutionReplacementCombobox.Disable()
+    substitutionReplacementHbox.Add(self.substitutionReplacementCombobox, 1, wx.EXPAND | wx.ALIGN_LEFT | wx.ALL, 5)
 
     cancelAndCloseHbox = wx.BoxSizer(wx.HORIZONTAL)
     
@@ -400,10 +426,13 @@ class SettingsDialog(wx.Dialog):
     self.closeButton.Bind(wx.EVT_BUTTON, self.onCloseButtonClick)
     cancelAndCloseHbox.Add(self.closeButton, 1, wx.EXPAND | wx.ALIGN_LEFT | wx.ALL, 5)
     
-    vbox.Add(playSuccessHbox)
+    vbox.Add(playSuccessCheckboxHbox)
     vbox.Add(successRegexHbox)
-    vbox.Add(playErrorHbox)
+    vbox.Add(playErrorCheckboxHbox)
     vbox.Add(errorRegexHbox)
+    vbox.Add(lineSubstitutionCheckboxHbox)
+    vbox.Add(substitutionRegexHbox)
+    vbox.Add(substitutionReplacementHbox)
     vbox.Add(cancelAndCloseHbox)
     self.panel.SetSizer(vbox)
     
@@ -439,6 +468,15 @@ class SettingsDialog(wx.Dialog):
     else:
       self.errorRegexTextbox.Disable()
 
+  # Handles the enable line substitution checkbox click.
+  def onLineSubstitutionCheckboxClick(self, event):
+    if self.lineSubstitutionCheckbox.GetValue():
+      self.substitutionRegexCombobox.Enable()
+      self.substitutionReplacementCombobox.Enable()
+    else:
+      self.substitutionRegexCombobox.Disable()
+      self.substitutionReplacementCombobox.Disable()
+
   # Handles the cancel button click.
   def onCancelButtonClick(self, event):
     self.close()
@@ -450,8 +488,13 @@ class SettingsDialog(wx.Dialog):
       'successRegex': self.successRegexTextbox.GetValue(),
       'playErrorSound': self.playErrorCheckbox.GetValue(),
       'errorRegex': self.errorRegexTextbox.GetValue(),
+      'lineSubstitution': self.lineSubstitutionCheckbox.GetValue(),
+      'substitutionRegex': self.substitutionRegexCombobox.GetValue(),
+      'substitutionReplacement': self.substitutionReplacementCombobox.GetValue(),
     }
     self.runner.mergeSettings(settings)
+    self.runner.addToSubstitutionRegexesHistory(settings['substitutionRegex'])
+    self.runner.addToSubstitutionReplacementsHistory(settings['substitutionReplacement'])
     self.Destroy()
 
 # Find text dialog class.
@@ -471,7 +514,7 @@ class FindDialog(wx.Dialog):
     self.ShowModal()
     self.Fit()
 
-  # Adds all the initial widgets to this frame.
+  # Adds all the initial widgets to this dialog.
   def addWidgets(self):
     self.panel = wx.Panel(self)    
     vbox = wx.BoxSizer(wx.VERTICAL)
@@ -525,7 +568,7 @@ class FindDialog(wx.Dialog):
     }
     self.runner.mergeSettings(settings)
     
-    self.runner.addToFindHistory(settings['findText'])
+    self.runner.addToFindTextsHistory(settings['findText'])
     self.parent.findText(settings['findBackward'])
     self.close()
     

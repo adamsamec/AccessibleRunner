@@ -1,5 +1,5 @@
 # TODO
-# * Formatting log outputs with the help of regular expressions.
+# * Resize the command output textbox together with the window.
 
 import os
 import sys
@@ -19,14 +19,20 @@ ON_WINDOWS = os.name == 'nt'
 # Main application class.
 class AccessibleRunner:
 
-  # Maximum number of items in commands history.
-  COMMAND_HISTORY_LIMIT = 10
+  # Maximum number of items in the commands history.
+  COMMANDS_HISTORY_LIMIT = 10
 
-  # Maximum number of items in working directories history.
-  DIR_HISTORY_LIMIT = 10
+  # Maximum number of items in the working directories history.
+  DIRECTORIES_HISTORY_LIMIT = 10
   
-  # Maximum number of items in find texts history
+  # Maximum number of items in the find texts history
   FIND_TEXTS_HISTORY_LIMIT = 10
+  
+  # Maximum number of items in the line substitution regular expression history
+  SUBSTITUTION_REGEXES_HISTORY_LIMIT = 10
+  
+  # Maximum number of items in the line substitution replacement history
+  SUBSTITUTION_REPLACEMENTS_HISTORY_LIMIT = 10
   
   # Paths to sounds directory and files
   SOUNDS_PATH = 'sounds/'
@@ -50,17 +56,15 @@ class AccessibleRunner:
     self.active = active
     
   # Runs the given command in a new process starting in  the  given working directory . The "useShell" parameter indicates if the command should be executed through the shell.
-  def runProcess(self, command, dir, useShell):
+  def runProcess(self, command, directory, useShell):
     if self.process is not None:
       return
     
-    # Sanitize the user input and ad to history if okay
-    if command.strip() != '':
-      self.addToCommandHistory(command)
-    if dir.strip() == '':
-      dir = None
-    if dir is not None:
-      self.addToDirHistory(dir)
+    # Add the command and directory to the history and ensure that blank or whitespace working directory value means the current working directory should be used
+    self.addToCommandsHistory(command)
+    if directory.strip() == '':
+      directory = None
+    self.addToDirectoriesHistory(directory)
     
     # On Windows, set the proper code page for console
     # See https://stackoverflow.com/questions/67524114/python-how-to-decode-file-names-retrieved-from-dir-command-using-subprocess
@@ -69,9 +73,11 @@ class AccessibleRunner:
       
       # Try running the command
     try:
-      self.process = Popen(command, cwd = dir, shell = useShell, stdout = PIPE, stderr = STDOUT, stdin = PIPE)
-    except (NotADirectoryError, FileNotFoundError):         
-      self.ui.setOutput('Error: The working directory \'{}\' does not exist.\n'.format(dir), True)
+      self.process = Popen(command, cwd = directory, shell = useShell, stdout = PIPE, stderr = STDOUT, stdin = PIPE)
+    except (NotADirectoryError, FileNotFoundError):
+      errorMessage = 'Error: The working directory \'{}\' does not exist.\n'.format(directory)
+      self.ui.setOutput(errorMessage, True)
+      self.srOutput(errorMessage)
       self.ui.setAsNotRunning()
     else:
     
@@ -79,75 +85,66 @@ class AccessibleRunner:
       thread = Thread(target = self.fetchOutput, args = (self.process.stdout, None))
       thread.daemon = True # Thread dies with the program
       thread.start()
-    self.ui.setAsRunning()
+      self.ui.setAsRunning()
     
   # Cleans everything on exit, including saving the changes to the config file.
   def clean(self):
     self.killProcessTree()
     self.config.saveToFile()
 
-  # Adds the given command to the  history.
-  def addToCommandHistory(self, command):
-    commands = self.config.history['commands']
+  # Adds the given item to the  given history record with the given limit and returns the new items list.
+  def addToHistory(self, item, record, limit):
+    if (item.strip() == '') or item is None:
+      return
+    items = self.config.history[record]
     
-    # If the command already exists in the history, remove it
+    # If the item already exists in the history, remove it
     try:  
-      index = commands.index(command)
-      commands.pop(index)
+      index = items.index(item)
+      items.pop(index)
     except:
       pass
       
-    # Add the command to the begining of the history
-    commands.insert(0, command)
+    # Add the item to the begining of the history
+    items.insert(0, item)
     
-    # Remove the commands which exceed the history limit
-    commands = commands[:AccessibleRunner.COMMAND_HISTORY_LIMIT]
+    # Remove the items which exceed the history limit
+    items = items[:limit]
+    
+    return items
+    
+  # Adds the given command to the  history.
+  def addToCommandsHistory(self, command):
+    commands = self.addToHistory(command, 'commands', AccessibleRunner.COMMANDS_HISTORY_LIMIT)
     
     # Set the new command choices
     self.ui.setCommandChoices(commands)
 
   # Adds the given directory to the  history.
-  def addToDirHistory(self, dir):
-    dirs = self.config.history['dirs']
-    
-    # If the directory already exists in the history, remove it
-    try:  
-      normDirs = [os.path.normpath(item) for item in dirs]
-      index = normDirs.index(os.path.normpath(dir))
-      dirs.pop(index)
-    except:
-      pass
-      
-    # Add the normalized directory to the begining of the history
-    dirs.insert(0, os.path.normpath(dir))
-    
-    # Remove the directories which exceed the history limit
-    dirs = dirs[:AccessibleRunner.DIR_HISTORY_LIMIT]
+  def addToDirectoriesHistory(self, directory):
+    if directory is None:
+      return
+    directories = self.addToHistory(os.path.normpath(directory), 'directories', AccessibleRunner.DIRECTORIES_HISTORY_LIMIT)
     
     # Set the new directory choices
-    self.ui.setDirChoices(dirs)
+    self.ui.setDirectoryChoices(directories)
     
   # Adds the given find text to the  history.
-  def addToFindHistory(self, findText):
-    findTexts = self.config.history['findTexts']
-    
-    # If the find text already exists in the history, remove it
-    try:  
-      index = findTexts.index(findText)
-      findTexts.pop(index)
-    except:
-      pass
-      
-    # Add the find text to the begining of the history
-    findTexts.insert(0, findText)
-    
-    # Remove the find texts which exceed the history limit
-    findTexts = findTexts[:AccessibleRunner.FIND_TEXTS_HISTORY_LIMIT]
+  def addToFindTextsHistory(self, findText):
+    self.addToHistory(findText, 'findTexts', AccessibleRunner.FIND_TEXTS_HISTORY_LIMIT)
 
+  # Adds the given line substitution regular expression to the  history.
+  def addToSubstitutionRegexesHistory(self, regex):
+    self.addToHistory(regex, 'substitutionRegexes', AccessibleRunner.SUBSTITUTION_REGEXES_HISTORY_LIMIT)
+    
   # Merges the given settings with the config settings dictionary.
   def mergeSettings(self, settings):
     self.config.settings.update(settings)
     
+  # Adds the given line substitution replacement to the  history.
+  def addToSubstitutionReplacementsHistory(self, replacement):
+    self.addToHistory(replacement, 'substitutionReplacements', AccessibleRunner.SUBSTITUTION_REPLACEMENTS_HISTORY_LIMIT)
+
   # Clears the command output.
   def clearOutput(self):
     self.ui.setOutput('')
@@ -209,6 +206,10 @@ class AccessibleRunner:
     
     for line in iter(out.readline, b''):
       lineString = line.decode()
+      
+      # Apply the regex based line substitution if enabled
+      if settings['lineSubstitution']:
+        lineString = re.sub(settings['substitutionRegex'], settings['substitutionReplacement'], lineString)
       
       # Output the line via screen reader if the main frame is active or if background output is turned on
       if self.active or self.config.settings['srBgOutput']:

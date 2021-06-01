@@ -1,8 +1,10 @@
 {
   "history": {
     "commands": [],
-    "dirs": [],
-    "findTexts": []
+    "directories": [],
+    "findTexts": [],
+    "substitutionRegexes": [],
+    "substitutionReplacements": []
   },
   "settings": {
     "useShell": true,
@@ -13,6 +15,9 @@
     "playSuccessSound": false,
     "successRegex": "",
     "playErrorSound": false,
-    "errorRegex": ""
+    "errorRegex": "",
+    "lineSubstitution": false,
+    "substitutionRegex": "",
+    "substitutionReplacement": ""
   }
 }

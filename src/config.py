@@ -32,9 +32,8 @@ class Config:
 
   # Loads and parses the JSON file at the given path and returns the loaded dictionary.
   def loadFile(self, path):
+    content = ''
     with open(path, encoding='utf-8') as file:
-      content = ''
-      
       # Load file line by line
       while True:
         line = file.readline()

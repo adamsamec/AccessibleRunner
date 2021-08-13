@@ -1,6 +1,8 @@
 import os
 import wx
+import wx.html2
 import re
+import markdown2
 
 import util
 
@@ -47,7 +49,7 @@ class MainFrame(wx.Frame):
     directoryHbox.Add(self.directoryCombobox, 1, wx.EXPAND | wx.ALIGN_LEFT | wx.ALL, 5)
     
     # Working directory choose button
-    self.chooseDirectoryButton = wx.Button(self.panel, label = 'Chooce directory')
+    self.chooseDirectoryButton = wx.Button(self.panel, label = 'Choose directory')
     self.chooseDirectoryButton.Bind(wx.EVT_BUTTON, self.onChooseDirectoryButtonClick)
     directoryHbox.Add(self.chooseDirectoryButton, 1, wx.EXPAND | wx.ALIGN_LEFT | wx.ALL, 5)
     
@@ -56,13 +58,6 @@ class MainFrame(wx.Frame):
     self.useShellCheckbox = wx.CheckBox(self.panel, label = 'Execute using shell', pos = (10, 10))
     self.useShellCheckbox.SetValue(settings['useShell'])
     useShellHbox.Add(self.useShellCheckbox, 1, wx.EXPAND | wx.ALIGN_LEFT | wx.ALL, 5)
-
-    # Screen reader output in background checkbox
-    bgOutputHbox = wx.BoxSizer(wx.HORIZONTAL)
-    self.bgOutputCheckbox = wx.CheckBox(self.panel, label = 'Screen reader output in background', pos = (10, 10))
-    self.bgOutputCheckbox.Bind(wx.EVT_CHECKBOX, self.onBgOutputCheckboxClick)
-    self.bgOutputCheckbox.SetValue(settings['srBgOutput'])
-    bgOutputHbox.Add(self.bgOutputCheckbox, 1, wx.EXPAND | wx.ALIGN_LEFT | wx.ALL, 5)
 
     runAndKillHbox = wx.BoxSizer(wx.HORIZONTAL)
 
@@ -84,30 +79,34 @@ class MainFrame(wx.Frame):
     self.outputTextbox = wx.TextCtrl(self.panel, size = (600, 150), style = wx.TE_MULTILINE | wx.TE_READONLY)
     outputHbox.Add(self.outputTextbox, 1, wx.EXPAND | wx.ALIGN_LEFT | wx.ALL, 5)
     
-    clearCopySettingsHbox = wx.BoxSizer(wx.HORIZONTAL)
+    bottomButtonsHbox = wx.BoxSizer(wx.HORIZONTAL)
     
     # Clear button
     self.clearButton = wx.Button(self.panel, label = 'Clear output')
     self.clearButton.Bind(wx.EVT_BUTTON, self.onClearButtonClick)
-    clearCopySettingsHbox.Add(self.clearButton, 1, wx.EXPAND | wx.ALIGN_LEFT | wx.ALL, 5)
+    bottomButtonsHbox.Add(self.clearButton, 1, wx.EXPAND | wx.ALIGN_LEFT | wx.ALL, 5)
     
     # Copy button
     self.copyButton = wx.Button(self.panel, label = 'Copy output')
     self.copyButton.Bind(wx.EVT_BUTTON, self.onCopyButtonClick)
-    clearCopySettingsHbox.Add(self.copyButton, 1, wx.EXPAND | wx.ALIGN_LEFT | wx.ALL, 5)
+    bottomButtonsHbox.Add(self.copyButton, 1, wx.EXPAND | wx.ALIGN_LEFT | wx.ALL, 5)
     
         # Settings button
     self.settingsButton = wx.Button(self.panel, label = 'Settings')
     self.settingsButton.Bind(wx.EVT_BUTTON, self.onSettingsButtonClick)
-    clearCopySettingsHbox.Add(self.settingsButton, 1, wx.EXPAND | wx.ALIGN_LEFT | wx.ALL, 5)
+    bottomButtonsHbox.Add(self.settingsButton, 1, wx.EXPAND | wx.ALIGN_LEFT | wx.ALL, 5)
 
     vbox.Add(commandHbox)
     vbox.Add(directoryHbox)
+        # Help button
+    self.helpButton = wx.Button(self.panel, label = 'Help and about')
+    self.helpButton.Bind(wx.EVT_BUTTON, self.onHelpButtonClick)
+    bottomButtonsHbox.Add(self.helpButton, 1, wx.EXPAND | wx.ALIGN_LEFT | wx.ALL, 5)
+
     vbox.Add(useShellHbox)
-    vbox.Add(bgOutputHbox)
     vbox.Add(runAndKillHbox)
     vbox.Add(outputHbox)
-    vbox.Add(clearCopySettingsHbox)
+    vbox.Add(bottomButtonsHbox)
 
     self.panel.SetSizer(vbox)
     
@@ -302,13 +301,6 @@ class MainFrame(wx.Frame):
       self.directoryCombobox.SetFocus()
     dialog.Destroy()
     
-  # Handles the screen reader output in background checkbox click.
-  def onBgOutputCheckboxClick(self, event):
-    settings = {
-      'srBgOutput': self.bgOutputCheckbox.GetValue(),
-    }
-    self.runner.mergeSettings(settings)
-
   # Handles the run button click.
   def onRunButtonClick(self, event):
     self.runProcess()
@@ -317,10 +309,6 @@ class MainFrame(wx.Frame):
   def onKillButtonClick(self, event):
     self.runner.killProcessTree()
     
-  # Handles the settings button click.
-  def onSettingsButtonClick(self, event):
-    SettingsDialog(self.runner, self.config, title = 'Settings{}{}'.format(MainFrame.WINDOW_TITLE_SEPARATOR, MainFrame.WINDOW_TITLE), parent = self)
-
   # Handles the clear button click.
   def onClearButtonClick(self, event):
     self.runner.clearOutput()
@@ -329,6 +317,14 @@ class MainFrame(wx.Frame):
   def onCopyButtonClick(self, event):
     self.runner.copyOutput()
     
+  # Handles the settings button click.
+  def onSettingsButtonClick(self, event):
+    SettingsDialog(self.runner, self.config, title = 'Settings{}{}'.format(MainFrame.WINDOW_TITLE_SEPARATOR, MainFrame.WINDOW_TITLE), parent = self)
+
+  # Handles the settings button click.
+  def onHelpButtonClick(self, event):
+    HelpHTMLDialog(title = 'Help and about{}{}'.format(MainFrame.WINDOW_TITLE_SEPARATOR, MainFrame.WINDOW_TITLE), parent = self)
+
   # Shows the find text dialog
   def showFindDialog(self):
     FindDialog(self.runner, self.config, title = 'Find text', parent = self)
@@ -356,6 +352,13 @@ class SettingsDialog(wx.Dialog):
     settings = self.config.settings
     history = self.config.history
     
+    # Screen reader output in background checkbox
+    bgOutputHbox = wx.BoxSizer(wx.HORIZONTAL)
+    self.bgOutputCheckbox = wx.CheckBox(self.panel, label = 'Screen reader output in background', pos = (10, 10))
+    self.bgOutputCheckbox.Bind(wx.EVT_CHECKBOX, self.onBgOutputCheckboxClick)
+    self.bgOutputCheckbox.SetValue(settings['srBgOutput'])
+    bgOutputHbox.Add(self.bgOutputCheckbox, 1, wx.EXPAND | wx.ALIGN_LEFT | wx.ALL, 5)
+
     # Play success sound checkbox
     playSuccessCheckboxHbox = wx.BoxSizer(wx.HORIZONTAL)
     self.playSuccessCheckbox = wx.CheckBox(self.panel, label = 'Play success sound when regular expression matches', pos = (10, 10))
@@ -426,6 +429,7 @@ class SettingsDialog(wx.Dialog):
     self.closeButton.Bind(wx.EVT_BUTTON, self.onCloseButtonClick)
     cancelAndCloseHbox.Add(self.closeButton, 1, wx.EXPAND | wx.ALIGN_LEFT | wx.ALL, 5)
     
+    vbox.Add(bgOutputHbox)
     vbox.Add(playSuccessCheckboxHbox)
     vbox.Add(successRegexHbox)
     vbox.Add(playErrorCheckboxHbox)
@@ -453,6 +457,13 @@ class SettingsDialog(wx.Dialog):
       self.close()
     else:
       event.Skip()
+
+  # Handles the screen reader output in background checkbox click.
+  def onBgOutputCheckboxClick(self, event):
+    settings = {
+      'srBgOutput': self.bgOutputCheckbox.GetValue(),
+    }
+    self.runner.mergeSettings(settings)
 
   # Handles the play success sound checkbox click.
   def onPlaySuccessCheckboxClick(self, event):
@@ -607,3 +618,59 @@ class FindDialog(wx.Dialog):
   # Handles the find text button click.
   def onFindButtonClick(self, event):
     self.findTextAndClose()
+
+# Help and about HTML dialog class.
+class HelpHTMLDialog(wx.Dialog):
+
+  # Paths to Markdown pages directory and files
+  MARKDOWN_PATH = 'md/'
+  HELP_PAGE_PATH = MARKDOWN_PATH + 'help-and-about.md'
+
+  # Initializes the object by creating the HTML page and binding the page load event.
+  def __init__(self, title, parent = None):
+    super(HelpHTMLDialog, self).__init__(parent = parent, title = title)
+    
+    self.addBrowser()
+    
+    self.SetSize((900, 700))
+    self.Centre()
+    self.ShowModal()
+    
+  # Adds the web browser to this dialog and binds the page load event.
+  def addBrowser(self):
+    vbox = wx.BoxSizer(wx.VERTICAL)
+    
+    self.browser = wx.html2.WebView.New(self)
+    self.Bind(wx.html2.EVT_WEBVIEW_LOADED, self.onPageLoad, self.browser)
+    html = self.loadHTML()
+    self.browser.SetPage(html, '')
+    
+    vbox.Add(self.browser, 1, wx.EXPAND, 10)
+    self.SetSizer(vbox)
+
+  # Handles the browser page load.
+  def onPageLoad(self, event):
+    # Clicks on the left upper corner of the page to move screen reader focus to the page
+    self.browser.SetFocus()
+    position = self.browser.GetPosition()
+    position = self.browser.ClientToScreen(position)
+    robot = wx.UIActionSimulator()
+    robot.MouseMove(position)
+    robot.MouseClick()
+    
+  # Loads the page in Markdown, converts it into HTML and returns it.
+  def loadHTML(self):
+    path = HelpHTMLDialog.HELP_PAGE_PATH
+    content = ''
+    with open(path, encoding='utf-8') as file:
+      # Load file line by line
+      while True:
+        line = file.readline()
+        content += line
+        if not line:
+          break
+    
+    # Convert page in Markkdown into HTML
+    md = markdown2.Markdown()
+    html = md.convert(content)
+    return html

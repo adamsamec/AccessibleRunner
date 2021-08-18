@@ -1,6 +1,7 @@
 import os
+import sys
 import wx
-import wx.html2
+from cefpython3 import cefpython as cef
 import re
 import markdown2
 
@@ -323,7 +324,7 @@ class MainFrame(wx.Frame):
 
   # Handles the settings button click.
   def onHelpButtonClick(self, event):
-    HelpHTMLDialog(title = 'Help and about{}{}'.format(MainFrame.WINDOW_TITLE_SEPARATOR, MainFrame.WINDOW_TITLE), parent = self)
+    helpDialog = HelpHTMLDialog(title = 'Help and about{}{}'.format(MainFrame.WINDOW_TITLE_SEPARATOR, MainFrame.WINDOW_TITLE), parent = self)
 
   # Shows the find text dialog
   def showFindDialog(self):
@@ -630,34 +631,43 @@ class HelpHTMLDialog(wx.Dialog):
   def __init__(self, title, parent = None):
     super(HelpHTMLDialog, self).__init__(parent = parent, title = title)
     
+    self.SetSize((900, 700))
     self.addBrowser()
     
-    self.SetSize((900, 700))
     self.Centre()
     self.ShowModal()
     
-  # Adds the web browser to this dialog and binds the page load event.
+  # Adds the CEF web browser to this dialog and binds the dialog close event.
   def addBrowser(self):
-    vbox = wx.BoxSizer(wx.VERTICAL)
+    self.panel = wx.Panel(self)
+    self.Bind(wx.EVT_CLOSE, self.onClose)
     
-    self.browser = wx.html2.WebView.New(self)
-    self.Bind(wx.html2.EVT_WEBVIEW_LOADED, self.onPageLoad, self.browser)
+    sys.excepthook = cef.ExceptHook
+    cef.Initialize()
+    windowInfo = cef.WindowInfo()
+    (width, height) = self.panel.GetClientSize().Get()
+    print('width ' + str(width))
+    print('height ' + str(height))
+    windowInfo.SetAsChild(self.panel.GetHandle(), [0, 0, width, height])
+    self.browser = cef.CreateBrowserSync(windowInfo, url = 'about:blank', window_title = 'Help and about{}{}'.format(MainFrame.WINDOW_TITLE_SEPARATOR, MainFrame.WINDOW_TITLE))
     html = self.loadHTML()
-    self.browser.SetPage(html, '')
+    self.browser.LoadUrl('data:text/html,' + html)
     
-    vbox.Add(self.browser, 1, wx.EXPAND, 10)
-    self.SetSizer(vbox)
+    self.timerId = 1
+    self.timer = wx.Timer(self, self.timerId)
+    self.Bind(wx.EVT_TIMER, self.onTimer, self.timer)
+    self.timer.Start(10)
+    
+  # Closes all CEF processes on dialog close.
+  def onClose(self):
+    self.timer.Stop()
+    self.browser = None
+    cef.Shutdown()
+    
+  # Runs the  CEF  message loop iteration.
+  def onTimer(self, event):
+    cef.MessageLoopWork()
 
-  # Handles the browser page load.
-  def onPageLoad(self, event):
-    # Clicks on the left upper corner of the page to move screen reader focus to the page
-    self.browser.SetFocus()
-    position = self.browser.GetPosition()
-    position = self.browser.ClientToScreen(position)
-    robot = wx.UIActionSimulator()
-    robot.MouseMove(position)
-    robot.MouseClick()
-    
   # Loads the page in Markdown, converts it into HTML and returns it.
   def loadHTML(self):
     path = HelpHTMLDialog.HELP_PAGE_PATH
@@ -670,7 +680,26 @@ class HelpHTMLDialog(wx.Dialog):
         if not line:
           break
     
-    # Convert page in Markkdown into HTML
+    # Convert the page from Markkdown to HTML
     md = markdown2.Markdown()
     html = md.convert(content)
+    
+    # Wrap the page content with the basic HTML structure and add the scrip which focuses the first element
+    html = '''
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+</head>
+<body>
+''' + html + '''
+<script>
+var first = document.getElementsByTagName('h1')[0];
+first.tabIndex = -1;
+first.focus();
+//alert('test');
+</script>
+</body>
+</html>
+'''
     return html

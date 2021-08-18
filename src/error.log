@@ -1,0 +1,10 @@
+
+[2021-08-18 19:14:26] Traceback (most recent call last):
+  File "C:\Users\asamec\Dropbox\DIY\Python\AccessibleRunner\AccessibleRunner\src\gui.py", line 327, in onHelpButtonClick
+    helpDialog = HelpHTMLDialog(title = 'Help and about{}{}'.format(MainFrame.WINDOW_TITLE_SEPARATOR, MainFrame.WINDOW_TITLE), parent = self)
+  File "C:\Users\asamec\Dropbox\DIY\Python\AccessibleRunner\AccessibleRunner\src\gui.py", line 635, in __init__
+    self.addBrowser()
+  File "C:\Users\asamec\Dropbox\DIY\Python\AccessibleRunner\AccessibleRunner\src\gui.py", line 649, in addBrowser
+    print('width ' + width)
+TypeError: can only concatenate str (not "int") to str
+

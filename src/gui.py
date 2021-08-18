@@ -100,7 +100,7 @@ class MainFrame(wx.Frame):
     vbox.Add(commandHbox)
     vbox.Add(directoryHbox)
         # Help button
-    self.helpButton = wx.Button(self.panel, label = 'Help and about')
+    self.helpButton = wx.Button(self.panel, label = 'Help')
     self.helpButton.Bind(wx.EVT_BUTTON, self.onHelpButtonClick)
     bottomButtonsHbox.Add(self.helpButton, 1, wx.EXPAND | wx.ALIGN_LEFT | wx.ALL, 5)
 
@@ -324,7 +324,7 @@ class MainFrame(wx.Frame):
 
   # Handles the settings button click.
   def onHelpButtonClick(self, event):
-    helpDialog = HelpHTMLDialog(title = 'Help and about{}{}'.format(MainFrame.WINDOW_TITLE_SEPARATOR, MainFrame.WINDOW_TITLE), parent = self)
+    helpDialog = HelpHTMLDialog(title = 'Help{}{}'.format(MainFrame.WINDOW_TITLE_SEPARATOR, MainFrame.WINDOW_TITLE), parent = self)
 
   # Shows the find text dialog
   def showFindDialog(self):
@@ -620,14 +620,14 @@ class FindDialog(wx.Dialog):
   def onFindButtonClick(self, event):
     self.findTextAndClose()
 
-# Help and about HTML dialog class.
+# Help HTML dialog class.
 class HelpHTMLDialog(wx.Dialog):
 
   # Paths to Markdown pages directory and files
   MARKDOWN_PATH = 'md/'
-  HELP_PAGE_PATH = MARKDOWN_PATH + 'help-and-about.md'
+  HELP_PAGE_PATH = MARKDOWN_PATH + 'help.md'
 
-  # Initializes the object by creating the HTML page and binding the page load event.
+  # Initializes the object by creating the CEF  web browser and binding the event handlers.
   def __init__(self, title, parent = None):
     super(HelpHTMLDialog, self).__init__(parent = parent, title = title)
     
@@ -646,10 +646,8 @@ class HelpHTMLDialog(wx.Dialog):
     cef.Initialize()
     windowInfo = cef.WindowInfo()
     (width, height) = self.panel.GetClientSize().Get()
-    print('width ' + str(width))
-    print('height ' + str(height))
     windowInfo.SetAsChild(self.panel.GetHandle(), [0, 0, width, height])
-    self.browser = cef.CreateBrowserSync(windowInfo, url = 'about:blank', window_title = 'Help and about{}{}'.format(MainFrame.WINDOW_TITLE_SEPARATOR, MainFrame.WINDOW_TITLE))
+    self.browser = cef.CreateBrowserSync(windowInfo, url = 'about:blank')
     html = self.loadHTML()
     self.browser.LoadUrl('data:text/html,' + html)
     
@@ -659,7 +657,7 @@ class HelpHTMLDialog(wx.Dialog):
     self.timer.Start(10)
     
   # Closes all CEF processes on dialog close.
-  def onClose(self):
+  def onClose(self, event):
     self.timer.Stop()
     self.browser = None
     cef.Shutdown()

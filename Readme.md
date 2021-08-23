@@ -1,4 +1,5 @@
 # AccessibleRunner
+## Introduction
 AccessibleRunner is a Windows utility for running console commands with screen reader accessible command output. This utility has been created with the aim to allow easy text selection, searching, copying and clearing for the textual output of the user provided command.
 
 ## Features
@@ -32,10 +33,34 @@ AccessibleRunner is developed in Python. [Download the source files ZIP archive 
     python AccessibleRunner.py
 
 ## Source file dependancies
-The Python source files of AccessibleRunner require the [wxPython](https://www.wxpython.org), [psutil](https://pypi.org/project/psutil/), [playsound](https://pypi.org/project/playsound/), [accessible-output2](https://pypi.org/project/accessible-output2/), and [markdown2](https://pypi.org/project/markdown2/) Python modules, which can be installed using [PIP](https://pypi.org/project/pip/) like this:
+The Python source files of AccessibleRunner require the [wxPython](https://www.wxpython.org), [psutil](https://pypi.org/project/psutil/), [playsound](https://pypi.org/project/playsound/), [accessible-output2](https://pypi.org/project/accessible-output2/), [markdown2](https://pypi.org/project/markdown2/), and [cefpython3](https://pypi.org/project/cefpython3/) Python modules, which can be installed using [PIP](https://pypi.org/project/pip/) like this:
 
     pip install wxPython
     pip install psutil
     pip install playsound
     pip install accessible-output2
     pip install markdown2
+pip install cefpython3
+
+## License
+
+The MIT License (MIT)
+
+Copyright (c) 2021 Adam Samec
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of
+this software and associated documentation files (the "Software"), to deal in
+the Software without restriction, including without limitation the rights to
+use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of
+the Software, and to permit persons to whom the Software is furnished to do so,
+subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
+IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.

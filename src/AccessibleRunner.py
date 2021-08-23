@@ -1,5 +1,6 @@
 # TODO
 # * Resize the command output textbox together with the window.
+# * Make the size of the help dialog relative to the desktop size.
 
 import os
 import sys
@@ -10,6 +11,7 @@ import accessible_output2.outputs.auto
 from subprocess import call, Popen, PIPE, STDOUT
 from threading import Thread
 from playsound import playsound
+from cefpython3 import cefpython as cef
 
 from config import Config
 from gui import MainFrame
@@ -242,5 +244,7 @@ def main():
   mainFrame = MainFrame(runner, config, title = MainFrame.WINDOW_TITLE)
   runner.setUI(mainFrame)
   app.MainLoop()
+  del app
+  cef.Shutdown()
 
 main()

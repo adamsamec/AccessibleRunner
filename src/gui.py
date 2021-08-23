@@ -631,7 +631,7 @@ class HelpHTMLDialog(wx.Dialog):
   def __init__(self, title, parent = None):
     super(HelpHTMLDialog, self).__init__(parent = parent, title = title)
     
-    self.SetSize((900, 700))
+    self.SetSize((1000, 800))
     self.addBrowser()
     
     self.Centre()
@@ -640,13 +640,13 @@ class HelpHTMLDialog(wx.Dialog):
   # Adds the CEF web browser to this dialog and binds the dialog close event.
   def addBrowser(self):
     self.panel = wx.Panel(self)
-    #self.Bind(wx.EVT_CLOSE, self.onClose)
+    self.Bind(wx.EVT_CLOSE, self.onClose)
     
     sys.excepthook = cef.ExceptHook
     cef.Initialize()
     windowInfo = cef.WindowInfo()
     (width, height) = self.panel.GetClientSize().Get()
-    windowInfo.SetAsChild(self.panel.GetHandle(), [0, 0, width, height])
+    windowInfo.SetAsChild(self.panel.GetHandle(), [0, 0, 1000, 800])
     self.browser = cef.CreateBrowserSync(windowInfo, url = 'about:blank')
     html = self.loadHTML()
     self.browser.LoadUrl('data:text/html,' + html)
@@ -660,7 +660,6 @@ class HelpHTMLDialog(wx.Dialog):
   def onClose(self, event):
     self.timer.Stop()
     self.browser = None
-    cef.Shutdown()
     event.Skip()
     
   # Runs the  CEF  message loop iteration.

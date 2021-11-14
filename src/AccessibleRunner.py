@@ -212,9 +212,11 @@ class AccessibleRunner:
       # Apply the regex based line substitution if enabled
       if settings['lineSubstitution']:
         lineString = re.sub(settings['substitutionRegex'], settings['substitutionReplacement'], lineString)
+        
+      isOutputOn = self.ui.isOutputOn()
       
-      # Output the line via screen reader if the main frame is active or if background output is turned on
-      if self.active or self.config.settings['srBgOutput']:
+      # Output the line via screen reader if the output is on and if the main frame is active or if background output is turned on
+      if isOutputOn and (self.active or self.config.settings['srBgOutput']):
         self.srOutput(lineString)
       
       # Play sound if success regex matches
@@ -229,8 +231,9 @@ class AccessibleRunner:
         if match is not None:
           self.playError()
         
-      # Append the line to the UI output
-      self.ui.setOutput(lineString, True)
+      # Append the line to the UI output if the output is on
+      if isOutputOn:
+        self.ui.setOutput(lineString, True)
 
     out.close()
     self.process = None

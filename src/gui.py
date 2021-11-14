@@ -54,6 +54,12 @@ class MainFrame(wx.Frame):
     self.chooseDirectoryButton.Bind(wx.EVT_BUTTON, self.onChooseDirectoryButtonClick)
     directoryHbox.Add(self.chooseDirectoryButton, 1, wx.EXPAND | wx.ALIGN_LEFT | wx.ALL, 5)
     
+    # Output toggle checkbox
+    outputToggleHbox = wx.BoxSizer(wx.HORIZONTAL)
+    self.outputToggleCheckbox = wx.CheckBox(self.panel, label = 'Command output', pos = (10, 10))
+    self.outputToggleCheckbox.SetValue(settings['outputOn'])
+    outputToggleHbox.Add(self.outputToggleCheckbox, 1, wx.EXPAND | wx.ALIGN_LEFT | wx.ALL, 5)
+
     # Use shell checkbox
     useShellHbox = wx.BoxSizer(wx.HORIZONTAL)
     self.useShellCheckbox = wx.CheckBox(self.panel, label = 'Execute using shell', pos = (10, 10))
@@ -104,6 +110,7 @@ class MainFrame(wx.Frame):
     self.helpButton.Bind(wx.EVT_BUTTON, self.onHelpButtonClick)
     bottomButtonsHbox.Add(self.helpButton, 1, wx.EXPAND | wx.ALIGN_LEFT | wx.ALL, 5)
 
+    vbox.Add(outputToggleHbox)
     vbox.Add(useShellHbox)
     vbox.Add(runAndKillHbox)
     vbox.Add(outputHbox)
@@ -126,6 +133,7 @@ class MainFrame(wx.Frame):
   # Cleans everything and closes the main window.
   def cleanAndClose(self):
     settings = {
+      'outputOn': self.outputToggleCheckbox.GetValue(),
       'useShell': self.useShellCheckbox.GetValue(),
     }
     self.runner.mergeSettings(settings)
@@ -155,6 +163,17 @@ class MainFrame(wx.Frame):
   def setDirectoryChoices(self, choices):
     self.setChoices(self.directoryCombobox, choices)
 
+  # Toggles the state of the output toggle checkbox and outputs the new state via screen reader.
+  def toggleOutput(self):
+    newValue = not self.outputToggleCheckbox.GetValue()
+    self.outputToggleCheckbox.SetValue(newValue)
+    message = 'Output is on' if newValue else 'Output is off'
+    self.runner.srOutput(message, True)
+
+  # Returns True if command output is on or False otherwise.
+  def isOutputOn(self):
+    return self.outputToggleCheckbox.GetValue()
+  
   # Sets or appends the given text to the command output textbox.
   def setOutput(self, text, append = False):
     if append:
@@ -252,6 +271,10 @@ class MainFrame(wx.Frame):
     # Control + K
     elif (key == ord('K')) and onlyControlDown:
       self.runner.killProcessTree()
+
+    # Control + T
+    elif (key == ord('T')) and onlyControlDown:
+      self.toggleOutput()
 
     # Control + L
     elif (key == ord('L')) and onlyControlDown:

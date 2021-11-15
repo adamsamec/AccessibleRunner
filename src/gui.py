@@ -21,7 +21,7 @@ class MainFrame(wx.Frame):
     
     self.Bind(wx.EVT_CLOSE, self.onWindowClose)
     self.Bind(wx.EVT_ACTIVATE, self.onWindowActivate)
-    self.Bind(wx.EVT_CHAR_HOOK  , self.charHook)
+    self.Bind(wx.EVT_CHAR_HOOK, self.charHook)
     
     self.addWidgets()
     self.Centre()
@@ -362,7 +362,7 @@ class SettingsDialog(wx.Dialog):
     self.runner = runner
     self.config = config
     
-    self.Bind(wx.EVT_CHAR_HOOK  , self.charHook)
+    self.Bind(wx.EVT_CHAR_HOOK, self.charHook)
     
     self.addWidgets()
     self.Centre()
@@ -471,10 +471,6 @@ class SettingsDialog(wx.Dialog):
   # Handles  the key press events for the whole dialog.
   def charHook(self, event):
     key = event.GetKeyCode()
-    modifiers = event.GetModifiers()
-    
-    # Check if no modifiers are pressed
-    noModifiers = not event.HasAnyModifiers()
     
     # Escape
     if key == wx.WXK_ESCAPE:
@@ -610,10 +606,6 @@ class FindDialog(wx.Dialog):
   # Handles  the key press events for the whole dialog.
   def charHook(self, event):
     key = event.GetKeyCode()
-    modifiers = event.GetModifiers()
-    
-    # Check if no modifiers are pressed
-    noModifiers = not event.HasAnyModifiers()
     
     # Escape
     if key == wx.WXK_ESCAPE:
@@ -655,6 +647,7 @@ class HelpHTMLDialog(wx.Dialog):
     super(HelpHTMLDialog, self).__init__(parent = parent, title = title)
     
     self.SetSize((1000, 800))
+    self.Bind(wx.EVT_CHAR_HOOK, self.charHook)
     self.addBrowser()
     
     self.Centre()
@@ -718,3 +711,18 @@ class HelpHTMLDialog(wx.Dialog):
 </html>
 '''
     return html
+    
+  # Closes the dialog without any changes.
+  def close(self):
+    self.Destroy()
+    
+  # Handles  the key press events for the whole dialog.
+  def charHook(self, event):
+    key = event.GetKeyCode()
+    
+    # Escape
+    if key == wx.WXK_ESCAPE:
+      self.close()
+    else:
+      event.Skip()
+

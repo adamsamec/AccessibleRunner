@@ -13,7 +13,7 @@ class MainFrame(wx.Frame):
   WINDOW_TITLE_SEPARATOR = ' | '
   WINDOW_TITLE = 'AccessibleRunner'
 
-  # Initializes the object by linking it with the given AccessibilityRunner and Config objects, binding the event handlers, and creating the GUI.
+  # Initializes the object by linking it with the given AccessibleRunner and Config objects, binding the event handlers, and creating the GUI.
   def __init__(self, runner, config, title, parent = None):
     super(MainFrame, self).__init__(parent, title = title)
     self.runner = runner
@@ -356,7 +356,7 @@ class MainFrame(wx.Frame):
 # Settings dialog class.
 class SettingsDialog(wx.Dialog):
 
-  # Initializes the object by linking it with the given AccessibilityRunner and Config objects, binding the event handlers, and creating the GUI.
+  # Initializes the object by linking it with the given AccessibleRunner and Config objects, binding the event handlers, and creating the GUI.
   def __init__(self, runner, config, title, parent = None):
     super(SettingsDialog, self).__init__(parent = parent, title = title)
     self.runner = runner
@@ -531,7 +531,7 @@ class SettingsDialog(wx.Dialog):
 # Find text dialog class.
 class FindDialog(wx.Dialog):
 
-  # Initializes the object by linking it with the given AccessibilityRunner and Config objects, binding the event handlers, and creating the GUI.
+  # Initializes the object by linking it with the given AccessibleRunner and Config objects, binding the event handlers, and creating the GUI.
   def __init__(self, runner, config, title, parent = None):
     super(FindDialog, self).__init__(parent = parent, title = title)
     self.parent = parent

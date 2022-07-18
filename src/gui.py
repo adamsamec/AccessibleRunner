@@ -345,7 +345,7 @@ class MainFrame(wx.Frame):
   def onSettingsButtonClick(self, event):
     SettingsDialog(self.runner, self.config, title = 'Settings{}{}'.format(MainFrame.WINDOW_TITLE_SEPARATOR, MainFrame.WINDOW_TITLE), parent = self)
 
-  # Handles the settings button click.
+  # Handles the help button click.
   def onHelpButtonClick(self, event):
     helpDialog = HelpHTMLDialog(title = 'Help{}{}'.format(MainFrame.WINDOW_TITLE_SEPARATOR, MainFrame.WINDOW_TITLE), parent = self)
 

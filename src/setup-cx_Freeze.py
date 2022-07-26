@@ -1,7 +1,7 @@
 import cx_Freeze
 
 options = {
-  'build_exe': '..\\build\\AccessibleRunner-cx_Freeze'
+  'build_exe': '..\\build\\cx_Freeze\\AccessibleRunner'
 }
 executables = [cx_Freeze.Executable('AccessibleRunner.py',
   base = 'Win32GUI',

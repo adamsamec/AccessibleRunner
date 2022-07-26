@@ -30,19 +30,19 @@ AccessibleRunner supports the following global keyboard shortcuts.
 AccessibleRunner for Windows is available as a portable version. After downloading the ZIP file by clicking the link below, extract the archive and run the application using the AccessibleRunner.exe file. [Download AccessibleRunner for Windows (32 bit)](https://github.com/adamsamec/AccessibleRunner/blob/master/dist/AccessibleRunner%20(Win-32bit).zip?raw=true).
 
 ### Source files
-AccessibleRunner is developed in Python. [Download the source files ZIP archive here](https://github.com/adamsamec/AccessibleRunner/blob/master/dist/AccessibleRunner%20(source).zip?raw=true). After downloading the ZIP file, extract it and run AccessibleRunner by executing the following command in the extracted directory:
+AccessibleRunner is developed in Python. You can find all the necessary source files in the "src" folder of this repo, and run the program from that folder by executing the following:
 
     python AccessibleRunner.py
 
 ## Source file dependancies
-The Python source files of AccessibleRunner require the [wxPython](https://www.wxpython.org), [psutil](https://pypi.org/project/psutil/), [playsound](https://pypi.org/project/playsound/), [accessible-output2](https://pypi.org/project/accessible-output2/), [markdown2](https://pypi.org/project/markdown2/), and [cefpython3](https://pypi.org/project/cefpython3/) Python modules, which can be installed using [PIP](https://pypi.org/project/pip/) like this:
+The Python source files of AccessibleRunner require the accessible-output2, cefpython3, markdown2, playsound, psutil and wxPython packages, which can be installed using [PIP][PIP] like this:
 
-    pip install wxPython
-    pip install psutil
-    pip install playsound
     pip install accessible-output2
-    pip install markdown2
 pip install cefpython3
+    pip install markdown2
+    pip install playsound
+    pip install psutil
+    pip install wxPython
 
 ## License
 AccessibleRunnner is available under the MIT licence
@@ -67,3 +67,5 @@ FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
 COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
 IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
 CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+[PIP]: https://pypi.org/project/pip/

@@ -27,7 +27,7 @@ AccessibleRunner supports the following global keyboard shortcuts.
 
 ## Download
 ### Portable version for Windows
-AccessibleRunner for Windows is available as a portable version. After downloading the ZIP file by clicking the link below, extract the archive and run the application using the AccessibleRunner.exe file. [Download AccessibleRunner for Windows (32 bit)](https://github.com/adamsamec/AccessibleRunner/blob/master/dist/AccessibleRunner%20(Win-32bit).zip?raw=true).
+AccessibleRunner for Windows is available as a portable version. After downloading the ZIP file by clicking the link below, extract the archive and run the application using the AccessibleRunner.exe file. [Download AccessibleRunner for Windows (32-bit)][portable-zip].
 
 ### Source files
 AccessibleRunner is developed in Python. You can find all the necessary source files in the "src" folder of this repo, and run the program from that folder by executing the following:
@@ -68,4 +68,5 @@ COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
 IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
 CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
+[portable-zip]: http://files.adamsamec.cz/adamsamec.cz/files/apps/AccessibleRunner%20(Win-32bit).zip
 [PIP]: https://pypi.org/project/pip/

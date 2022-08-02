@@ -1,2 +1,5 @@
 # TODO
 * Help dialog not working.
+* Resize the command output textbox together with the window.
+* Make the size of the help dialog relative to the desktop size.
+

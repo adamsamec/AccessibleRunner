@@ -1,7 +1,3 @@
-# TODO
-# * Resize the command output textbox together with the window.
-# * Make the size of the help dialog relative to the desktop size.
-
 import os
 import sys
 import wx

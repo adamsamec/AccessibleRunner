@@ -1,4 +1,6 @@
 # TODO
+* Some checkboxes update immediately.
+* Format the code using Black.
 * Help dialog not working.
 * Resize the command output textbox together with the window.
 * Make the size of the help dialog relative to the desktop size.

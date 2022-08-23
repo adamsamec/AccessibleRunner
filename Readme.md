@@ -26,8 +26,8 @@ AccessibleRunner supports the following global keyboard shortcuts.
 * Control + Q: Quits the application.
 
 ## Download
-### Portable version for Windows
-AccessibleRunner for Windows is available as a portable version. After downloading the ZIP file by clicking the link below, extract the archive and run the application using the AccessibleRunner.exe file.
+### Portable version
+AccessibleRunner is available as a portable version. After downloading the ZIP file by clicking the link below, extract the archive and run the application using the AccessibleRunner.exe file.
 
 [Download AccessibleRunner for Windows (32-bit)][portable-download].
 

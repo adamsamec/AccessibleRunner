@@ -760,8 +760,7 @@ class HelpHTMLDialog(wx.Dialog):
 
     # Initializes the object by creating the HTML window, binding the event handlers and loading the HTML page.
     def __init__(self, title, parent=None):
-        super(HelpHTMLDialog, self).__init__(parent=parent, title=title)
-        self.SetSize((1000, 800))
+        super(HelpHTMLDialog, self).__init__(parent=parent, title=title, size=(1000, 800))
 
         self.Bind(wx.EVT_CHAR_HOOK, self.charHook)
 
@@ -779,13 +778,14 @@ class HelpHTMLDialog(wx.Dialog):
         self.browser.Bind(wx.html2.EVT_WEBVIEW_LOADED, self.clickToPage)
         html = self.loadHTML()
         self.browser.SetPage(html, "")
+        vbox.Add(self.browser, 1, wx.EXPAND | wx.ALL, 5)
 
         # Close button
         self.closeButton = wx.Button(self.panel, label="Close")
         self.closeButton.SetDefault()
         self.closeButton.Bind(wx.EVT_BUTTON, self.onCloseButtonClick)
+        vbox.Add(self.closeButton, 1, wx.EXPAND | wx.ALL, 5)
 
-        vbox.Add(self.browser, 1, wx.EXPAND | wx.ALL, 5)
         self.panel.SetSizer(vbox)
 
     # Clicks to the top left corner of the page as a workaround for the page to be responsive to keyboard input.
@@ -831,7 +831,7 @@ class HelpHTMLDialog(wx.Dialog):
         )
         return html
 
-    # Closes the dialog without any changes.
+    # Closes the dialog.
     def close(self):
         self.Destroy()
 
@@ -847,4 +847,4 @@ class HelpHTMLDialog(wx.Dialog):
 
     # Handles the Close button click.
     def onCloseButtonClick(self, event):
-        self.Destroy()
+        self.close()

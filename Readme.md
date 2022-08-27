@@ -63,4 +63,3 @@ IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
 CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 [portable-download]: https://files.adamsamec.cz/apps/AccessibleRunner-win32.zip
-[PIP]: https://pypi.org/project/pip/

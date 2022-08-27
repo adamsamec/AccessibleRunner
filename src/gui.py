@@ -382,7 +382,7 @@ class MainFrame(wx.Frame):
 
     # Handles the help button click.
     def onHelpButtonClick(self, event):
-        helpDialog = HelpHTMLDialog(
+        helpDialog = HelpHtmlDialog(
             title="Help{}{}".format(
                 MainFrame.WINDOW_TITLE_SEPARATOR, MainFrame.WINDOW_TITLE
             ),
@@ -752,7 +752,7 @@ class FindDialog(wx.Dialog):
 
 
 # Help HTML dialog class.
-class HelpHTMLDialog(wx.Dialog):
+class HelpHtmlDialog(wx.Dialog):
 
     # Paths to Markdown pages directory and files
     MARKDOWN_PATH = "md/"
@@ -760,7 +760,7 @@ class HelpHTMLDialog(wx.Dialog):
 
     # Initializes the object by creating the HTML window, binding the event handlers and loading the HTML page.
     def __init__(self, title, parent=None):
-        super(HelpHTMLDialog, self).__init__(parent=parent, title=title, size=(1000, 800))
+        super(HelpHtmlDialog, self).__init__(parent=parent, title=title, size=(1000, 800))
 
         self.Bind(wx.EVT_CHAR_HOOK, self.charHook)
 
@@ -799,7 +799,7 @@ class HelpHTMLDialog(wx.Dialog):
 
     # Loads the page in Markdown, converts it into HTML and returns it.
     def loadHTML(self):
-        path = HelpHTMLDialog.HELP_PAGE_PATH
+        path = HelpHtmlDialog.HELP_PAGE_PATH
         content = ""
         with open(path, encoding="utf-8") as file:
             # Load file line by line

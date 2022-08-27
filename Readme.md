@@ -32,19 +32,11 @@ AccessibleRunner is available as a portable version. After downloading the ZIP f
 [Download AccessibleRunner for Windows (32-bit)][portable-download].
 
 ### Source files
-AccessibleRunner is developed in Python. You can find all the necessary source files in the "src" folder of this repo, and run the program from that folder by executing the following:
+AccessibleRunner is a free and open-source software developed in Python. You can find all the necessary source files in the "src" folder of this repo, and run the program from that folder by executing the following if all the Python dependancies are met:
 
-    python AccessibleRunner.py
-
-## Source file dependancies
-The Python source files of AccessibleRunner require the accessible-output2, cefpython3, markdown2, playsound, psutil and wxPython packages, which can be installed using [PIP][PIP] like this:
-
-    pip install accessible-output2
-pip install cefpython3
-    pip install markdown2
-    pip install playsound
-    pip install psutil
-    pip install wxPython
+```
+python AccessibleRunner.py
+```
 
 ## License
 AccessibleRunnner is available under the MIT licence

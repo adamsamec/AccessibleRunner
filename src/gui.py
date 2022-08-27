@@ -1,9 +1,9 @@
+import markdown2
 import os
 import sys
-import wx
-from cefpython3 import cefpython as cef
 import re
-import markdown2
+import wx
+import wx.html
 
 import util
 
@@ -758,45 +758,20 @@ class HelpHTMLDialog(wx.Dialog):
     MARKDOWN_PATH = "md/"
     HELP_PAGE_PATH = MARKDOWN_PATH + "help.md"
 
-    # Initializes the object by creating the CEF  web browser and binding the event handlers.
+    # Initializes the object by creating the HTML window, binding the event handlers and loading the HTML page.
     def __init__(self, title, parent=None):
         super(HelpHTMLDialog, self).__init__(parent=parent, title=title)
-
+        window= wx.html.HtmlWindow(self)
         self.SetSize((1000, 800))
+
         self.Bind(wx.EVT_CHAR_HOOK, self.charHook)
-        self.addBrowser()
+
+        html = self.loadHTML()
+        window.SetPage(html)
+        window.SetFocus()
 
         self.Centre()
         self.ShowModal()
-
-    # Adds the CEF web browser to this dialog and binds the dialog close event.
-    def addBrowser(self):
-        self.panel = wx.Panel(self)
-        self.Bind(wx.EVT_CLOSE, self.onClose)
-
-        sys.excepthook = cef.ExceptHook
-        cef.Initialize()
-        windowInfo = cef.WindowInfo()
-        (width, height) = self.panel.GetClientSize().Get()
-        windowInfo.SetAsChild(self.panel.GetHandle(), [0, 0, 1000, 800])
-        self.browser = cef.CreateBrowserSync(windowInfo, url="about:blank")
-        html = self.loadHTML()
-        self.browser.LoadUrl("data:text/html," + html)
-
-        self.timerId = 1
-        self.timer = wx.Timer(self, self.timerId)
-        self.Bind(wx.EVT_TIMER, self.onTimer, self.timer)
-        self.timer.Start(10)
-
-    # Closes all CEF processes on dialog close.
-    def onClose(self, event):
-        self.timer.Stop()
-        self.browser = None
-        event.Skip()
-
-    # Runs the  CEF  message loop iteration.
-    def onTimer(self, event):
-        cef.MessageLoopWork()
 
     # Loads the page in Markdown, converts it into HTML and returns it.
     def loadHTML(self):

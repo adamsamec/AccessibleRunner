@@ -1,13 +1,12 @@
-import os
-import sys
-import wx
-import re
-import psutil
 import accessible_output2.outputs.auto
-from subprocess import call, Popen, PIPE, STDOUT
-from threading import Thread
+import os
 from playsound import playsound
-from cefpython3 import cefpython as cef
+import psutil
+import re
+from subprocess import call, Popen, PIPE, STDOUT
+import sys
+from threading import Thread
+import wx
 
 from config import Config
 from gui import MainFrame
@@ -275,7 +274,6 @@ def main():
     runner.setUI(mainFrame)
     app.MainLoop()
     del app
-    cef.Shutdown()
 
 
 main()

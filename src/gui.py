@@ -422,7 +422,6 @@ class SettingsDialog(wx.Dialog):
         self.bgOutputCheckbox = wx.CheckBox(
             self.panel, label="Screen reader output in background", pos=(10, 10)
         )
-        self.bgOutputCheckbox.Bind(wx.EVT_CHECKBOX, self.onBgOutputCheckboxClick)
         self.bgOutputCheckbox.SetValue(settings["srBgOutput"])
         bgOutputHbox.Add(
             self.bgOutputCheckbox, 1, wx.EXPAND | wx.ALIGN_LEFT | wx.ALL, 5
@@ -578,13 +577,6 @@ class SettingsDialog(wx.Dialog):
         else:
             event.Skip()
 
-    # Handles the screen reader output in background checkbox click.
-    def onBgOutputCheckboxClick(self, event):
-        settings = {
-            "srBgOutput": self.bgOutputCheckbox.GetValue(),
-        }
-        self.runner.mergeSettings(settings)
-
     # Handles the play success sound checkbox click.
     def onPlaySuccessCheckboxClick(self, event):
         if self.playSuccessCheckbox.GetValue():
@@ -615,6 +607,7 @@ class SettingsDialog(wx.Dialog):
     # Handles the save and close button click.
     def onCloseButtonClick(self, event):
         settings = {
+            "srBgOutput": self.bgOutputCheckbox.GetValue(),
             "playSuccessSound": self.playSuccessCheckbox.GetValue(),
             "successRegex": self.successRegexTextbox.GetValue(),
             "playErrorSound": self.playErrorCheckbox.GetValue(),

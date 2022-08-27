@@ -16,8 +16,10 @@ executables = [
 
 cx_Freeze.setup(
     name="AccessibleRunner",
-    version="1.0",
+    version="1.1.0",
     description="Utility for running console commands with screen reader accessible output.",
+    author="Adam Samec",
+    author_email="adam.samec@gmail.com",
     options={"build_exe": options},
     executables=executables,
 )

@@ -1,6 +1,6 @@
 # TODO
+* Fix Escape to close not working when focus is in the help dialog browser.
 * Some checkboxes update immediately.
-* Help dialog not working, only in executable.
 * Resize the command output textbox together with the window.
 * Make the size of the help dialog relative to the desktop size.
 

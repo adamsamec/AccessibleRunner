@@ -767,7 +767,7 @@ class HelpHtmlDialog(wx.Dialog):
         vbox = wx.BoxSizer(wx.VERTICAL)
 
         # HTML browser containing the help page
-        self.browser = wx.html2.WebView.New(self.panel)
+        self.browser = wx.html2.WebView.New(self.panel, backend=wx.html2.WebViewBackendEdge)
         self.browser.Bind(wx.html2.EVT_WEBVIEW_LOADED, self.clickToPage)
         html = self.loadHTML()
         self.browser.SetPage(html, "")

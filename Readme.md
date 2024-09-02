@@ -1,4 +1,7 @@
 # AccessibleRunner
+## Notice
+AccessibleRunner is no longer being developed and has been succeeded by [CommandRunner].
+
 ## Introduction
 AccessibleRunner is a Windows utility for running console commands with screen reader accessible command output. This utility has been created with the aim to allow easy text selection, searching, copying and clearing for the textual output of the user provided command.
 
@@ -62,4 +65,5 @@ COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
 IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
 CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
+[CommandRunner]: https://github.com/adamsamec/CommandRunner/?tab=readme-ov-file
 [portable-download]: https://files.adamsamec.cz/apps/AccessibleRunner-win32.zip

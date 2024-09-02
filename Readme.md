@@ -65,5 +65,5 @@ COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
 IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
 CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-[CommandRunner]: https://github.com/adamsamec/CommandRunner/?tab=readme-ov-file
+[CommandRunner]: https://github.com/adamsamec/CommandRunner/
 [portable-download]: https://files.adamsamec.cz/apps/AccessibleRunner-win32.zip
